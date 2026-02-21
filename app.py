@@ -15,6 +15,7 @@ from flask import (
     send_file, abort, make_response
 )
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from dotenv import load_dotenv
 
 # ── Load Environment ──────────────────────────────────────────────────────────
@@ -39,6 +40,14 @@ app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev-secret-key-change-
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///agricopilot.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max upload
+
+# ── CORS — allow Netlify frontend + local dev ─────────────────────────────────
+CORS(app, origins=[
+    "https://*.netlify.app",       # any Netlify subdomain
+    "http://localhost:5000",
+    "http://127.0.0.1:5000",
+    "http://localhost:3000",
+])
 
 
 
@@ -174,7 +183,10 @@ def analyze():
 def chat_api():
     data = request.json
     if _gemini_available:
-        reply = chat_with_agronomist(data.get("message", ""))
+        reply = chat_with_agronomist(
+            data.get("message", ""),
+            system_note=data.get("system_note", "")
+        )
     else:
         reply = "Demo mode: Enable Gemini API key to chat."
     return jsonify({"reply": reply})
