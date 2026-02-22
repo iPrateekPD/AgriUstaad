@@ -61,13 +61,24 @@ def _generate_with_fallback(contents) -> str:
     raise RuntimeError(f"All Gemini models failed. Last error: {last_error}")
 
 
-def chat_with_agronomist(user_message: str) -> str:
-    """Gemini-powered interactive Q&A for preventative farming advice."""
+def chat_with_agronomist(user_message: str, extra_context: str = "") -> str:
+    """Gemini-powered interactive Q&A for preventative farming advice.
+    
+    extra_context: farmer profile + GPS location injected by frontend, e.g.:
+        "Farmer's location: Bargarh, Odisha\\nField size: 3 acres\\nSoil type: Clay Loam..."
+    """
     try:
+        context_block = ""
+        if extra_context and extra_context.strip():
+            context_block = f"\n\n{extra_context.strip()}\n\nUse the above farmer profile and location to give highly specific, personalised advice. Reference their soil type, crops, location, and budget directly where relevant.\n"
+
         prompt = (
             "You are an expert, empathetic agronomist advising a smallholder farmer in India. "
-            "Keep your advice highly practical, simple, and concise (under 3-4 sentences).\n"
-            f'Farmer says: "{user_message}"'
+            "Keep your advice highly practical, specific, and concise (under 4 sentences). "
+            "When farmer profile data is provided, personalise every answer to their specific situation — "
+            "mention their crop, soil type, location, or budget by name."
+            f"{context_block}"
+            f'\nFarmer says: "{user_message}"'
         )
         return _generate_with_fallback(prompt)
     except Exception as e:
