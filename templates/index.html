@@ -2416,6 +2416,12 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
         🌐 <span id="langNavName">English</span> · Change
       </button>
       <button class="nav-link" id="calNavBtn" onclick="openCalendar()" style="border:none;cursor:pointer;"><span>🗓️</span> <span data-i18n="calNav">Calendar</span></button>
+      <!-- Notification Bell -->
+      <button class="nav-notif-btn" id="navNotifBtn" onclick="toggleNotifPanel()" aria-label="Notifications">
+        <span class="notif-bell">🔔</span>
+        <span class="notif-badge" id="notifBadge">3</span>
+      </button>
+      <button class="nav-auth-btn" id="navAuthBtn" onclick="openAuthPanel()"><span id="navAuthIcon">👤</span><span id="navAuthLabel">Login</span></button>
     </div>
   </nav>
 
@@ -5874,6 +5880,1172 @@ document.addEventListener('keydown', e => {
         .catch(err => console.error('Offline Mode Failed:', err));
     });
   }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH & PROFILE OVERLAYS CSS
+════════════════════════════════════════════════════════════ -->
+<style>
+/* ── Nav Auth Button ── */
+.nav-auth-btn {
+  display:flex;align-items:center;gap:6px;
+  padding:7px 14px;
+  background:rgba(45,138,68,0.12);
+  border:1.5px solid rgba(45,138,68,0.35);
+  border-radius:var(--r-full);
+  color:var(--c-green-300);
+  font-family:var(--ff-body);font-size:13px;font-weight:500;
+  cursor:pointer;transition:all 0.25s ease;
+  letter-spacing:0.02em;
+}
+.nav-auth-btn:hover {
+  background:rgba(45,138,68,0.22);border-color:var(--c-green-400);
+  transform:translateY(-1px);box-shadow:0 4px 16px rgba(45,138,68,0.2);
+}
+.nav-auth-btn.logged-in { background:rgba(45,138,68,0.2);border-color:var(--c-green-300); }
+
+/* ── Auth Overlay ── */
+.auth-overlay {
+  position:fixed;inset:0;z-index:100000;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  animation:authFadeIn 0.3s ease both;
+}
+@keyframes authFadeIn { from{opacity:0;} to{opacity:1;} }
+
+.auth-card {
+  position:relative;width:100%;max-width:420px;
+  background:rgba(10,18,12,0.95);
+  backdrop-filter:blur(40px);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:32px;
+  padding:40px 32px 36px;
+  box-shadow:0 40px 100px rgba(0,0,0,0.7), 0 0 60px rgba(45,138,68,0.1);
+  animation:authCardIn 0.4s cubic-bezier(0.34,1.3,0.64,1) both;
+}
+@keyframes authCardIn {
+  from{opacity:0;transform:translateY(30px) scale(0.95);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+.auth-close {
+  position:absolute;top:16px;right:18px;
+  background:none;border:none;color:var(--c-text-3);
+  font-size:18px;cursor:pointer;line-height:1;padding:4px 8px;
+  border-radius:8px;transition:all 0.2s;
+}
+.auth-close:hover { color:var(--c-text);background:rgba(255,255,255,0.06); }
+.auth-logo { font-size:36px;margin-bottom:6px; }
+.auth-title { font-family:var(--ff-display);font-size:28px;font-weight:600;color:var(--c-text);margin-bottom:2px; }
+.auth-subtitle { font-size:12px;color:var(--c-text-3);margin-bottom:24px; }
+
+.auth-tabs { display:flex;gap:6px;margin-bottom:24px;background:rgba(255,255,255,0.04);padding:4px;border-radius:12px; }
+.auth-tab {
+  flex:1;padding:8px;border:none;background:none;color:var(--c-text-2);
+  font-family:var(--ff-body);font-size:13.5px;font-weight:500;border-radius:9px;cursor:pointer;transition:all 0.2s;
+}
+.auth-tab.active { background:rgba(45,138,68,0.25);color:var(--c-green-300); }
+
+.auth-field { margin-bottom:14px; }
+.auth-field label { display:block;font-size:11.5px;color:var(--c-text-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px; }
+.auth-field input {
+  width:100%;padding:11px 14px;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.08);
+  border-radius:12px;color:var(--c-text);font-family:var(--ff-body);font-size:14px;
+  outline:none;transition:border-color 0.2s;
+}
+.auth-field input:focus { border-color:rgba(45,138,68,0.5); }
+.auth-error { font-size:12.5px;color:#e05252;min-height:18px;margin-bottom:8px; }
+.auth-submit {
+  width:100%;padding:12px;
+  background:linear-gradient(135deg,var(--c-green-700),var(--c-green-500));
+  border:none;border-radius:12px;color:white;font-family:var(--ff-body);
+  font-size:14.5px;font-weight:600;cursor:pointer;
+  transition:all 0.25s;letter-spacing:0.02em;
+  box-shadow:0 4px 16px rgba(45,138,68,0.3);
+}
+.auth-submit:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(45,138,68,0.4); }
+
+/* ── Profile Dashboard ── */
+.profile-overlay {
+  position:fixed;inset:0;z-index:100000;
+  background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);
+  display:flex;justify-content:flex-end;
+  animation:authFadeIn 0.3s ease both;
+}
+.profile-panel {
+  width:100%;max-width:560px;height:100vh;
+  background:linear-gradient(180deg,rgba(10,22,14,0.98) 0%,rgba(8,15,11,0.99) 100%);
+  backdrop-filter:blur(40px);
+  border-left:1px solid rgba(255,255,255,0.08);
+  display:flex;flex-direction:column;overflow:hidden;
+  animation:slidePanelIn 0.4s cubic-bezier(0.34,1.1,0.64,1) both;
+}
+@keyframes slidePanelIn { from{transform:translateX(100%);} to{transform:translateX(0);} }
+
+.profile-header {
+  display:flex;align-items:center;gap:14px;
+  padding:24px 24px 16px;
+  border-bottom:1px solid var(--c-border);
+  background:rgba(45,138,68,0.06);
+  flex-shrink:0;
+}
+.profile-avatar {
+  width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c-green-700),var(--c-green-500));
+  display:grid;place-items:center;font-size:24px;flex-shrink:0;
+}
+.profile-name { font-family:var(--ff-display);font-size:20px;font-weight:600;color:var(--c-text); }
+.profile-email { font-size:12px;color:var(--c-text-3);margin-top:2px; }
+.profile-close {
+  margin-left:auto;background:none;border:none;color:var(--c-text-3);
+  font-size:20px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:all 0.2s;
+}
+.profile-close:hover { color:var(--c-text);background:rgba(255,255,255,0.06); }
+
+.profile-tabs { display:flex;gap:4px;padding:12px 16px 0;border-bottom:1px solid var(--c-border);flex-shrink:0; }
+.ptab {
+  padding:8px 16px;border:none;background:none;color:var(--c-text-3);
+  font-family:var(--ff-body);font-size:13px;font-weight:500;border-radius:10px 10px 0 0;
+  cursor:pointer;transition:all 0.2s;border-bottom:2px solid transparent;
+}
+.ptab.active { color:var(--c-green-300);border-bottom-color:var(--c-green-400);background:rgba(45,138,68,0.08); }
+
+.ptab-content {
+  flex:1;overflow-y:auto;padding:20px;
+  scrollbar-width:thin;scrollbar-color:rgba(45,138,68,0.3) transparent;
+}
+
+/* Profile form */
+.pform-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+.pform-full { grid-column:1/-1; }
+.pform-group label { display:block;font-size:11px;color:var(--c-text-3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:5px; }
+.pform-group input,
+.pform-group select,
+.pform-group textarea {
+  width:100%;padding:9px 12px;
+  background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.08);
+  border-radius:10px;color:var(--c-text);font-family:var(--ff-body);font-size:13.5px;
+  outline:none;transition:border-color 0.2s;resize:none;
+}
+.pform-group input:focus,
+.pform-group select:focus,
+.pform-group textarea:focus { border-color:rgba(45,138,68,0.5); }
+.pform-group select option { background:#0a1a0f; }
+
+.profile-save-btn {
+  flex:1;padding:11px;
+  background:linear-gradient(135deg,var(--c-green-700),var(--c-green-500));
+  border:none;border-radius:12px;color:white;font-family:var(--ff-body);
+  font-size:14px;font-weight:600;cursor:pointer;transition:all 0.25s;
+}
+.profile-save-btn:hover { transform:translateY(-1px);box-shadow:0 6px 20px rgba(45,138,68,0.35); }
+.profile-logout-btn {
+  padding:11px 18px;background:rgba(224,82,82,0.1);border:1.5px solid rgba(224,82,82,0.25);
+  border-radius:12px;color:#e05252;font-family:var(--ff-body);font-size:13px;cursor:pointer;transition:all 0.2s;
+}
+.profile-logout-btn:hover { background:rgba(224,82,82,0.18); }
+
+/* ── Recommendations ── */
+.rec-intro { margin-bottom:16px; }
+.rec-intro p { font-size:13px;color:var(--c-text-2);margin-bottom:12px;line-height:1.55; }
+.rec-generate-btn {
+  width:100%;padding:12px;
+  background:linear-gradient(135deg,rgba(45,138,68,0.3),rgba(45,138,68,0.15));
+  border:1.5px solid rgba(45,138,68,0.4);border-radius:12px;
+  color:var(--c-green-300);font-family:var(--ff-body);font-size:14px;font-weight:600;
+  cursor:pointer;transition:all 0.25s;
+}
+.rec-generate-btn:hover { background:rgba(45,138,68,0.3);transform:translateY(-1px); }
+.rec-loading { display:flex;align-items:center;gap:12px;padding:20px;color:var(--c-text-2);font-size:13.5px; }
+.rec-spinner {
+  width:22px;height:22px;border:2.5px solid rgba(45,138,68,0.2);
+  border-top-color:var(--c-green-400);border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin { to{transform:rotate(360deg);} }
+.rec-section-label { font-size:11px;text-transform:uppercase;letter-spacing:0.09em;color:var(--c-green-400);font-weight:600;margin-bottom:10px; }
+
+/* Oversupply warning */
+.rec-warn-card {
+  background:rgba(240,168,48,0.08);border:1.5px solid rgba(240,168,48,0.25);
+  border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;
+  color:var(--c-amber);display:flex;gap:10px;align-items:flex-start;
+}
+
+/* Crop cards */
+.rec-crops-grid { display:flex;flex-direction:column;gap:10px; }
+.rec-crop-card {
+  background:rgba(255,255,255,0.04);border:1px solid var(--c-border);
+  border-radius:14px;padding:14px;cursor:default;transition:border-color 0.2s;
+}
+.rec-crop-card:hover { border-color:rgba(45,138,68,0.35); }
+.rcc-top { display:flex;align-items:center;justify-content:space-between;margin-bottom:8px; }
+.rcc-name { font-family:var(--ff-display);font-size:18px;font-weight:600;color:var(--c-text); }
+.rcc-score {
+  font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--r-full);
+  background:rgba(45,138,68,0.2);color:var(--c-green-300);
+}
+.rcc-reason { font-size:12.5px;color:var(--c-text-2);margin-bottom:10px; }
+.rcc-stats { display:flex;gap:8px;flex-wrap:wrap; }
+.rcc-stat {
+  font-size:11.5px;padding:4px 10px;border-radius:8px;
+  background:rgba(255,255,255,0.05);color:var(--c-text-2);
+}
+.rcc-risk-low { color:#4cd964; }
+.rcc-risk-med { color:var(--c-amber); }
+.rcc-risk-hi  { color:#e05252; }
+
+/* Market table */
+.rec-market-table { border:1px solid var(--c-border);border-radius:12px;overflow:hidden;font-size:13px; }
+.rmt-row { display:grid;grid-template-columns:2fr 1.5fr 1fr 1fr;padding:9px 14px;gap:8px; }
+.rmt-head { background:rgba(45,138,68,0.1);color:var(--c-green-400);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600; }
+.rmt-row:not(.rmt-head) { border-top:1px solid var(--c-border);color:var(--c-text-2); }
+.rmt-row:not(.rmt-head):hover { background:rgba(255,255,255,0.02); }
+.rmt-up { color:#4cd964; } .rmt-dn { color:#e05252; }
+
+/* Sustain tip */
+.rec-sustain-tip {
+  margin-top:14px;background:rgba(45,138,68,0.08);border:1px solid rgba(45,138,68,0.2);
+  border-radius:12px;padding:12px 14px;font-size:13px;color:var(--c-text-2);
+}
+.rec-sustain-tip::before { content:'🌿 ';font-size:14px; }
+
+/* Schemes */
+.scheme-card {
+  background:rgba(255,255,255,0.04);border:1px solid var(--c-border);
+  border-radius:14px;padding:14px;margin-bottom:10px;
+}
+.scheme-name { font-weight:600;color:var(--c-text);margin-bottom:4px;font-size:14px; }
+.scheme-benefit { font-size:12.5px;color:var(--c-text-2);margin-bottom:8px; }
+.scheme-link {
+  font-size:12px;color:var(--c-green-400);text-decoration:none;
+  border:1px solid rgba(45,138,68,0.3);padding:4px 10px;border-radius:8px;
+  display:inline-block;transition:all 0.2s;
+}
+.scheme-link:hover { background:rgba(45,138,68,0.1); }
+.equip-card {
+  background:rgba(255,255,255,0.04);border:1px solid var(--c-border);
+  border-radius:14px;padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.equip-tool { font-size:13.5px;color:var(--c-text);font-weight:500; }
+.equip-cost { font-size:13px;color:var(--c-green-300); }
+.equip-where { font-size:11.5px;color:var(--c-text-3);margin-top:2px; }
+
+@media(max-width:600px) {
+  .profile-panel { max-width:100%; }
+  .pform-grid { grid-template-columns:1fr; }
+  .pform-full { grid-column:1; }
+}
+
+/* ── Notification Bell Button ── */
+.nav-notif-btn {
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,0.05);
+  border:1.5px solid rgba(255,255,255,0.1);
+  cursor:pointer;transition:all 0.25s ease;flex-shrink:0;
+}
+.nav-notif-btn:hover { background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);transform:translateY(-1px); }
+.nav-notif-btn.active { background:rgba(45,138,68,0.15);border-color:rgba(45,138,68,0.4); }
+.notif-bell { font-size:16px;line-height:1;display:block; }
+.notif-badge {
+  position:absolute;top:-4px;right:-4px;
+  min-width:17px;height:17px;padding:0 4px;
+  background:#e05252;border-radius:var(--r-full);
+  font-size:10px;font-weight:700;color:white;
+  display:flex;align-items:center;justify-content:center;
+  border:1.5px solid var(--c-bg);
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.nav-notif-btn:hover .notif-badge { transform:scale(1.15); }
+.notif-badge.zero { display:none; }
+
+/* ── Notification Panel ── */
+.notif-panel {
+  position:fixed;top:64px;right:16px;z-index:99998;
+  width:340px;
+  background:rgba(10,20,13,0.97);
+  backdrop-filter:blur(40px) saturate(180%);
+  border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px;
+  box-shadow:0 24px 60px rgba(0,0,0,0.6), 0 0 40px rgba(45,138,68,0.08);
+  overflow:hidden;
+  transform-origin:top right;
+  animation:notifPanelIn 0.3s cubic-bezier(0.34,1.3,0.64,1) both;
+}
+@keyframes notifPanelIn {
+  from { opacity:0; transform:scale(0.88) translateY(-10px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.notif-panel-header {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 16px 10px;
+  border-bottom:1px solid var(--c-border);
+}
+.notif-panel-title { font-family:var(--ff-display);font-size:17px;font-weight:600;color:var(--c-text); }
+.notif-clear-btn {
+  font-size:11px;color:var(--c-text-3);background:none;border:none;cursor:pointer;
+  padding:4px 8px;border-radius:8px;transition:all 0.2s;
+}
+.notif-clear-btn:hover { color:var(--c-green-300);background:rgba(45,138,68,0.1); }
+.notif-list { max-height:380px;overflow-y:auto;padding:8px 0;scrollbar-width:thin;scrollbar-color:rgba(45,138,68,0.3) transparent; }
+.notif-item {
+  display:flex;gap:12px;align-items:flex-start;
+  padding:11px 16px;transition:background 0.2s;cursor:default;
+  border-left:3px solid transparent;
+}
+.notif-item:hover { background:rgba(255,255,255,0.03); }
+.notif-item.unread { border-left-color:var(--c-green-400);background:rgba(45,138,68,0.05); }
+.notif-item.warn   { border-left-color:var(--c-amber); }
+.notif-item.alert  { border-left-color:#e05252; }
+.notif-icon { font-size:20px;flex-shrink:0;margin-top:1px; }
+.notif-body { flex:1;min-width:0; }
+.notif-title { font-size:13px;font-weight:600;color:var(--c-text);margin-bottom:2px;line-height:1.3; }
+.notif-desc  { font-size:12px;color:var(--c-text-2);line-height:1.45; }
+.notif-time  { font-size:10.5px;color:var(--c-text-3);margin-top:4px; }
+.notif-empty { padding:30px;text-align:center;color:var(--c-text-3);font-size:13px; }
+.notif-dot { width:7px;height:7px;border-radius:50%;background:var(--c-green-400);flex-shrink:0;margin-top:5px; }
+
+/* ── Location status pill ── */
+.loc-status-pill {
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;color:var(--c-green-400);
+  background:rgba(45,138,68,0.1);border:1px solid rgba(45,138,68,0.2);
+  padding:3px 10px;border-radius:var(--r-full);
+  position:fixed;bottom:14px;left:14px;z-index:3500;
+  opacity:0;transition:opacity 0.5s ease;pointer-events:none;
+}
+.loc-status-pill.show { opacity:1; }
+.loc-dot { width:6px;height:6px;border-radius:50%;background:var(--c-green-400);animation:locPulse 2s ease-in-out infinite; }
+@keyframes locPulse { 0%,100%{opacity:1;}50%{opacity:0.4;} }
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH OVERLAYS HTML
+════════════════════════════════════════════════════════════ -->
+
+<!-- Auth Overlay (Login / Sign-Up) -->
+<div id="authOverlay" class="auth-overlay" style="display:none;" onclick="if(event.target===this)closeAuthPanel()">
+  <div class="auth-card">
+    <button class="auth-close" onclick="closeAuthPanel()">✕</button>
+    <div class="auth-logo">🌿</div>
+    <h2 class="auth-title">AgriUstaad</h2>
+    <p class="auth-subtitle">Your AI farming companion</p>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Login</button>
+      <button class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Sign Up</button>
+    </div>
+    <!-- Login Form -->
+    <div id="formLogin" class="auth-form">
+      <div class="auth-field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+      <div class="auth-error" id="loginError"></div>
+      <button class="auth-submit" onclick="doLogin()"><span id="loginBtnText">Login →</span></button>
+    </div>
+    <!-- Sign-Up Form -->
+    <div id="formSignup" class="auth-form" style="display:none;">
+      <div class="auth-field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"/></div>
+      <div class="auth-field"><label>Phone (optional)</label><input type="tel" id="signupPhone" placeholder="+91 98765 43210"/></div>
+      <div class="auth-field"><label>Password (min 6 chars)</label><input type="password" id="signupPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignup()"/></div>
+      <div class="auth-error" id="signupError"></div>
+      <button class="auth-submit" onclick="doSignup()"><span id="signupBtnText">Create Account →</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Farmer Profile Dashboard -->
+<div id="profileOverlay" class="profile-overlay" style="display:none;" onclick="if(event.target===this)closeProfilePanel()">
+  <div class="profile-panel" onclick="event.stopPropagation()">
+    <div class="profile-header">
+      <div class="profile-avatar">🌾</div>
+      <div>
+        <div class="profile-name" id="profileName">Farmer</div>
+        <div class="profile-email" id="profileEmail"></div>
+      </div>
+      <button class="profile-close" onclick="closeProfilePanel()">✕</button>
+    </div>
+    <div class="profile-tabs">
+      <button class="ptab active" id="ptab-btn-info" onclick="switchProfileTab('info',this)">👤 Profile</button>
+      <button class="ptab" id="ptab-btn-recommend" onclick="switchProfileTab('recommend',this)">🌱 AI Crops</button>
+      <button class="ptab" id="ptab-btn-schemes" onclick="switchProfileTab('schemes',this)">🏛️ Schemes</button>
+    </div>
+
+    <!-- Tab: Profile Info -->
+    <div id="ptab-info" class="ptab-content">
+      <div class="pform-grid">
+        <div class="pform-group"><label>Full Name</label><input type="text" id="pFullName" placeholder="e.g. Ramesh Kumar"/></div>
+        <div class="pform-group"><label>Age</label><input type="number" id="pAge" placeholder="42" min="18" max="100"/></div>
+        <div class="pform-group pform-full"><label>Location / Village, District</label><input type="text" id="pLocation" placeholder="e.g. Bargarh, Odisha"/></div>
+        <div class="pform-group"><label>Field Size (acres)</label><input type="number" id="pFieldSize" placeholder="3.5" step="0.5" min="0"/></div>
+        <div class="pform-group"><label>Budget / Investment (₹)</label><input type="number" id="pBudget" placeholder="15000"/></div>
+        <div class="pform-group"><label>Soil Type</label>
+          <select id="pSoilType"><option value="">Select…</option><option>Clay Loam</option><option>Sandy Loam</option><option>Silty Loam</option><option>Black Cotton</option><option>Red Laterite</option><option>Alluvial</option></select></div>
+        <div class="pform-group"><label>Soil pH</label><input type="number" id="pSoilPh" placeholder="6.5" step="0.1" min="3" max="10"/></div>
+        <div class="pform-group"><label>Irrigation</label>
+          <select id="pIrrigation"><option value="">Select…</option><option>Drip</option><option>Flood</option><option>Sprinkler</option><option>Rain-fed</option><option>None</option></select></div>
+        <div class="pform-group pform-full"><label>Previously Grown Crops (comma separated)</label><input type="text" id="pPrevCrops" placeholder="Rice, Maize, Groundnut"/></div>
+        <div class="pform-group pform-full"><label>Planned Crops for Next Season (comma separated)</label><input type="text" id="pPlannedCrops" placeholder="Tomato, Onion"/></div>
+        <div class="pform-group pform-full"><label>Soil Quality Notes</label><textarea id="pSoilNotes" rows="2" placeholder="e.g. Waterlogged in monsoon, low organic matter"></textarea></div>
+        <div class="pform-group pform-full"><label>Other Notes</label><textarea id="pOtherNotes" rows="2" placeholder="Any other relevant info…"></textarea></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="profile-save-btn" onclick="saveProfile()"><span id="saveBtnText">💾 Save Profile</span></button>
+        <button class="profile-logout-btn" onclick="doLogout()">🚪 Logout</button>
+      </div>
+    </div>
+
+    <!-- Tab: AI Crop Recommendations -->
+    <div id="ptab-recommend" class="ptab-content" style="display:none;">
+      <div class="rec-intro">
+        <p>Based on your soil type, field size, budget, and local market trends, our AI recommends the best crops for your next season.</p>
+        <button class="rec-generate-btn" onclick="loadRecommendations()"><span id="recBtnText">🌱 Get AI Recommendations</span></button>
+      </div>
+      <div id="recLoading" style="display:none;" class="rec-loading"><div class="rec-spinner"></div><span>Analysing your farm data…</span></div>
+      <div id="recResults" style="display:none;">
+        <div id="recWarnings"></div>
+        <div class="rec-section-label">🏆 Top Crop Recommendations</div>
+        <div id="recCrops" class="rec-crops-grid"></div>
+        <div class="rec-section-label" style="margin-top:20px;">📈 Current Market Prices (Demo)</div>
+        <div class="rec-market-table">
+          <div class="rmt-row rmt-head"><span>Crop</span><span>Price</span><span>Demand</span><span>Trend</span></div>
+          <div id="recMarketRows"></div>
+        </div>
+        <div id="recSustainTip" class="rec-sustain-tip"></div>
+      </div>
+    </div>
+
+    <!-- Tab: Govt Schemes & Equipment -->
+    <div id="ptab-schemes" class="ptab-content" style="display:none;">
+      <div id="schemesContent"><p style="color:var(--c-text-3);text-align:center;padding:30px 0;font-size:13px;">Load AI Recommendations first to see relevant schemes &amp; equipment.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     NOTIFICATION PANEL HTML
+════════════════════════════════════════════════════════════ -->
+<div id="notifPanel" class="notif-panel" style="display:none;">
+  <div class="notif-panel-header">
+    <span class="notif-panel-title">🔔 Alerts & Advisories</span>
+    <button class="notif-clear-btn" onclick="clearAllNotifs()">Mark all read</button>
+  </div>
+  <div class="notif-list" id="notifList">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<!-- Location status pill -->
+<div class="loc-status-pill" id="locStatusPill">
+  <span class="loc-dot"></span>
+  <span id="locStatusText">Detecting location…</span>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH & PROFILE JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let _authUser = null;
+let _recData  = null;
+
+// ── On page load: check if already logged in ──────────────────────────────────
+(async function initAuth() {
+  try {
+    const r = await fetch('/api/auth/me');
+    const d = await r.json();
+    if (d.logged_in) {
+      _authUser = d.user;
+      onLoginSuccess(d.user, d.profile);
+    }
+  } catch(e) {}
+})();
+
+// ── Open/close auth overlay ───────────────────────────────────────────────────
+function openAuthPanel() {
+  if (_authUser) { openProfilePanel(); return; }
+  document.getElementById('authOverlay').style.display = 'flex';
+  setTimeout(() => document.getElementById('loginEmail')?.focus(), 100);
+}
+function closeAuthPanel() {
+  document.getElementById('authOverlay').style.display = 'none';
+}
+function switchAuthTab(tab) {
+  document.getElementById('formLogin').style.display  = tab === 'login'  ? '' : 'none';
+  document.getElementById('formSignup').style.display = tab === 'signup' ? '' : 'none';
+  document.getElementById('tabLogin').classList.toggle('active',  tab === 'login');
+  document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+  document.getElementById('loginError').textContent  = '';
+  document.getElementById('signupError').textContent = '';
+}
+
+// ── Login ─────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  const btn      = document.getElementById('loginBtnText');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Please enter email and password.'; return; }
+  btn.textContent = '⏳ Logging in…';
+  try {
+    const r = await fetch('/api/auth/login', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.error || 'Login failed.'; return; }
+    closeAuthPanel();
+    onLoginSuccess(d.user, null);
+    fetchFullProfile();
+  } catch(e) {
+    errEl.textContent = 'Connection error. Please try again.';
+  } finally {
+    btn.textContent = 'Login →';
+  }
+}
+
+// ── Sign-Up ───────────────────────────────────────────────────────────────────
+async function doSignup() {
+  const email    = document.getElementById('signupEmail').value.trim();
+  const phone    = document.getElementById('signupPhone').value.trim();
+  const password = document.getElementById('signupPassword').value;
+  const errEl    = document.getElementById('signupError');
+  const btn      = document.getElementById('signupBtnText');
+  errEl.textContent = '';
+  if (!email || !password) { errEl.textContent = 'Email and password are required.'; return; }
+  if (password.length < 6)  { errEl.textContent = 'Password must be at least 6 characters.'; return; }
+  btn.textContent = '⏳ Creating account…';
+  try {
+    const r = await fetch('/api/auth/register', {
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, phone, password})
+    });
+    const d = await r.json();
+    if (!r.ok) { errEl.textContent = d.error || 'Registration failed.'; return; }
+    closeAuthPanel();
+    onLoginSuccess(d.user, {});
+    openProfilePanel(); // prompt them to fill profile
+  } catch(e) {
+    errEl.textContent = 'Connection error. Please try again.';
+  } finally {
+    btn.textContent = 'Create Account →';
+  }
+}
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+async function doLogout() {
+  await fetch('/api/auth/logout', {method:'POST'});
+  _authUser = null;
+  _recData  = null;
+  closeProfilePanel();
+  const btn = document.getElementById('navAuthBtn');
+  document.getElementById('navAuthIcon').textContent = '👤';
+  document.getElementById('navAuthLabel').textContent = 'Login';
+  btn.classList.remove('logged-in');
+}
+
+// ── After login: update UI ────────────────────────────────────────────────────
+function onLoginSuccess(user, profile) {
+  _authUser = user;
+  const btn = document.getElementById('navAuthBtn');
+  document.getElementById('navAuthIcon').textContent  = '🌾';
+  document.getElementById('navAuthLabel').textContent = (profile?.full_name || user.email.split('@')[0]);
+  btn.classList.add('logged-in');
+  if (profile) populateProfileForm(profile);
+}
+
+async function fetchFullProfile() {
+  try {
+    const r = await fetch('/api/auth/me');
+    const d = await r.json();
+    if (d.logged_in && d.profile) populateProfileForm(d.profile);
+  } catch(e) {}
+}
+
+// ── Profile Panel ─────────────────────────────────────────────────────────────
+function openProfilePanel() {
+  if (!_authUser) { openAuthPanel(); return; }
+  document.getElementById('profileName').textContent  = _authUser.email.split('@')[0];
+  document.getElementById('profileEmail').textContent = _authUser.email;
+  document.getElementById('profileOverlay').style.display = 'flex';
+}
+function closeProfilePanel() {
+  document.getElementById('profileOverlay').style.display = 'none';
+}
+function switchProfileTab(tab, el) {
+  ['info','recommend','schemes'].forEach(t => {
+    document.getElementById('ptab-' + t).style.display = t === tab ? '' : 'none';
+    document.getElementById('ptab-btn-' + t)?.classList.toggle('active', t === tab);
+  });
+}
+
+function populateProfileForm(p) {
+  const s = (id, v) => { const el = document.getElementById(id); if(el && v != null) el.value = v; };
+  s('pFullName',    p.full_name);
+  s('pAge',         p.age);
+  s('pLocation',    p.location);
+  s('pFieldSize',   p.field_size_acres);
+  s('pBudget',      p.budget_inr);
+  s('pSoilType',    p.soil_type);
+  s('pSoilPh',      p.soil_ph);
+  s('pIrrigation',  p.irrigation);
+  s('pSoilNotes',   p.soil_quality_notes);
+  s('pOtherNotes',  p.other_notes);
+  if (p.previous_crops) s('pPrevCrops', Array.isArray(p.previous_crops) ? p.previous_crops.join(', ') : p.previous_crops);
+  if (p.planned_crops)  s('pPlannedCrops', Array.isArray(p.planned_crops) ? p.planned_crops.join(', ') : p.planned_crops);
+  // Update nav label with name if available
+  if (p.full_name && _authUser) {
+    document.getElementById('navAuthLabel').textContent = p.full_name.split(' ')[0];
+  }
+}
+
+async function saveProfile() {
+  const g = id => document.getElementById(id)?.value || '';
+  const csvToArr = s => s.split(',').map(x => x.trim()).filter(Boolean);
+  const payload = {
+    full_name:         g('pFullName'),
+    age:               g('pAge'),
+    location:          g('pLocation'),
+    field_size_acres:  g('pFieldSize'),
+    budget_inr:        g('pBudget'),
+    soil_type:         g('pSoilType'),
+    soil_ph:           g('pSoilPh'),
+    irrigation:        g('pIrrigation'),
+    soil_quality_notes:g('pSoilNotes'),
+    other_notes:       g('pOtherNotes'),
+    previous_crops:    csvToArr(g('pPrevCrops')),
+    planned_crops:     csvToArr(g('pPlannedCrops')),
+  };
+  const btn = document.getElementById('saveBtnText');
+  btn.textContent = '⏳ Saving…';
+  try {
+    const r = await fetch('/api/auth/profile', {
+      method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+    });
+    const d = await r.json();
+    if (d.success) {
+      btn.textContent = '✅ Saved!';
+      if (payload.full_name) document.getElementById('navAuthLabel').textContent = payload.full_name.split(' ')[0];
+      setTimeout(() => btn.textContent = '💾 Save Profile', 2000);
+    } else {
+      btn.textContent = '❌ Error saving';
+      setTimeout(() => btn.textContent = '💾 Save Profile', 2000);
+    }
+  } catch(e) {
+    btn.textContent = '❌ Error';
+    setTimeout(() => btn.textContent = '💾 Save Profile', 2000);
+  }
+}
+
+// ── AI Crop Recommendations ───────────────────────────────────────────────────
+async function loadRecommendations() {
+  if (!_authUser) { closeProfilePanel(); openAuthPanel(); return; }
+  document.getElementById('recLoading').style.display  = 'flex';
+  document.getElementById('recResults').style.display  = 'none';
+  document.getElementById('recBtnText').textContent    = '⏳ Analysing…';
+
+  try {
+    const r = await fetch('/api/auth/recommend', {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    const d = await r.json();
+    if (!d.success) throw new Error(d.error || 'Failed');
+    _recData = d.recommendation;
+    renderRecommendations(_recData, d.demo);
+  } catch(e) {
+    document.getElementById('recLoading').style.display = 'none';
+    document.getElementById('recBtnText').textContent = '🌱 Get AI Recommendations';
+    alert('Could not load recommendations. Please save your profile first and try again.');
+  }
+}
+
+function renderRecommendations(rec, isDemo) {
+  document.getElementById('recLoading').style.display = 'none';
+  document.getElementById('recBtnText').textContent = '🔄 Refresh';
+
+  // Oversupply warnings
+  const warnEl = document.getElementById('recWarnings');
+  warnEl.innerHTML = (rec.oversupply_warnings || []).map(w => `
+    <div class="rec-warn-card">⚠️ <div><strong>${w.crop}</strong>: ${w.warning}</div></div>
+  `).join('');
+
+  // Crop cards
+  const riskClass = r => r === 'Low' ? 'rcc-risk-low' : r === 'Medium' ? 'rcc-risk-med' : 'rcc-risk-hi';
+  document.getElementById('recCrops').innerHTML = (rec.top_crops || []).map(c => `
+    <div class="rec-crop-card">
+      <div class="rcc-top">
+        <div class="rcc-name">${c.name}</div>
+        <div class="rcc-score">${c.suitability_score}% match</div>
+      </div>
+      <div class="rcc-reason">${c.reason}</div>
+      <div class="rcc-stats">
+        <div class="rcc-stat">💰 Return: ₹${(c.expected_return_inr||0).toLocaleString()}</div>
+        <div class="rcc-stat">📦 Invest: ₹${(c.investment_inr||0).toLocaleString()}</div>
+        <div class="rcc-stat">⏱ ${c.duration_days} days</div>
+        <div class="rcc-stat ${riskClass(c.risk_level)}">Risk: ${c.risk_level}</div>
+        <div class="rcc-stat">📈 ${c.market_price_qtl}</div>
+      </div>
+    </div>
+  `).join('');
+
+  // Market table (demo prices from top_crops)
+  const marketCrops = [
+    ...(rec.top_crops || []).map(c => ({name:c.name, price:c.market_price_qtl, demand:c.market_demand, trend: c.risk_level === 'Low' ? '▲' : '▼', cls: c.risk_level === 'Low' ? 'rmt-up' : 'rmt-dn'})),
+    {name:'Tomato', price:'₹1,800/qtl', demand:'Medium', trend:'▼', cls:'rmt-dn'},
+    {name:'Potato', price:'₹1,400/qtl', demand:'Low', trend:'▼', cls:'rmt-dn'},
+  ];
+  document.getElementById('recMarketRows').innerHTML = marketCrops.map(c => `
+    <div class="rmt-row">
+      <span>${c.name}</span>
+      <span>${c.price}</span>
+      <span>${c.demand}</span>
+      <span class="${c.cls}">${c.trend}</span>
+    </div>
+  `).join('');
+
+  // Sustainability tip
+  if (rec.sustainability_tip)
+    document.getElementById('recSustainTip').textContent = rec.sustainability_tip;
+
+  document.getElementById('recResults').style.display = 'block';
+
+  // Populate schemes tab
+  renderSchemes(rec);
+  if (isDemo) {
+    const tip = document.createElement('p');
+    tip.style.cssText = 'font-size:11px;color:var(--c-text-3);margin-top:8px;text-align:center;';
+    tip.textContent = '(Demo data — save your profile & connect Gemini API for personalised AI recommendations)';
+    document.getElementById('recResults').appendChild(tip);
+  }
+}
+
+function renderSchemes(rec) {
+  const el = document.getElementById('schemesContent');
+  const schemes = (rec.govt_schemes || []).map(s => `
+    <div class="scheme-card">
+      <div class="scheme-name">🏛️ ${s.name}</div>
+      <div class="scheme-benefit">${s.benefit}</div>
+      <a href="${s.url}" target="_blank" rel="noopener" class="scheme-link">Visit Official Site ↗</a>
+    </div>
+  `).join('');
+  const equip = (rec.equipment_rental || []).map(e => `
+    <div class="equip-card">
+      <div><div class="equip-tool">🚜 ${e.tool}</div><div class="equip-where">${e.where}</div></div>
+      <div class="equip-cost">${e.rental_cost}</div>
+    </div>
+  `).join('');
+  el.innerHTML = `
+    <div class="rec-section-label" style="margin-bottom:10px;">Government Schemes</div>
+    ${schemes || '<p style="color:var(--c-text-3);font-size:13px;">No schemes listed.</p>'}
+    <div class="rec-section-label" style="margin-top:20px;margin-bottom:10px;">Equipment Rental</div>
+    ${equip || '<p style="color:var(--c-text-3);font-size:13px;">No equipment listed.</p>'}
+  `;
+}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FEATURE 1 — NOTIFICATION SYSTEM
+════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Notification data store ─────────────────────────────────────────────── */
+const NOTIF_STORAGE_KEY = 'agri_notifications_read';
+
+const DEFAULT_NOTIFICATIONS = [
+  {
+    id:    'n1',
+    type:  'alert',
+    icon:  '🦠',
+    title: 'Disease Alert: Leaf Blast detected nearby',
+    desc:  '3 farmers within 5 km reported Leaf Blast on Paddy. Inspect your crop today and consider preventive Tricyclazole spray.',
+    time:  'Today, 9:14 AM',
+    unread: true,
+  },
+  {
+    id:    'n2',
+    type:  'warn',
+    icon:  '🌧️',
+    title: 'Spray Advisory: Heavy rain expected tomorrow',
+    desc:  'Rain probability >70% in next 24 hrs. Postpone any pesticide or fertiliser application until weather clears.',
+    time:  'Today, 8:30 AM',
+    unread: true,
+  },
+  {
+    id:    'n3',
+    type:  'unread',
+    icon:  '💰',
+    title: 'Mandi Price Update: Tomato dropped 18%',
+    desc:  'Tomato prices fell to ₹1,800/qtl in Cuttack mandi. Consider alternative markets or delay selling.',
+    time:  'Today, 7:00 AM',
+    unread: true,
+  },
+  {
+    id:    'n4',
+    type:  '',
+    icon:  '🌱',
+    title: 'Tip: Best time to sow Green Gram',
+    desc:  'Current soil moisture and temperature are ideal for Green Gram (Moong) sowing. Expected yield: 6–8 qtl/acre.',
+    time:  'Yesterday',
+    unread: false,
+  },
+  {
+    id:    'n5',
+    type:  '',
+    icon:  '🏛️',
+    title: 'Scheme Reminder: PM-KISAN installment due',
+    desc:  'The next PM-KISAN beneficiary list update is open. Ensure your Aadhaar-linked bank account is active.',
+    time:  'Yesterday',
+    unread: false,
+  },
+];
+
+let _notifications = JSON.parse(JSON.stringify(DEFAULT_NOTIFICATIONS));
+let _notifOpen = false;
+
+/* ── Restore read state from localStorage ────────────────────────────────── */
+(function restoreNotifState() {
+  try {
+    const readIds = JSON.parse(localStorage.getItem(NOTIF_STORAGE_KEY) || '[]');
+    _notifications.forEach(n => { if (readIds.includes(n.id)) n.unread = false; });
+    updateNotifBadge();
+  } catch(e) {}
+})();
+
+function updateNotifBadge() {
+  const unread = _notifications.filter(n => n.unread).length;
+  const badge  = document.getElementById('notifBadge');
+  if (!badge) return;
+  badge.textContent = unread || '';
+  badge.classList.toggle('zero', unread === 0);
+}
+
+function renderNotifList() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  if (!_notifications.length) {
+    list.innerHTML = '<div class="notif-empty">✅ You\'re all caught up!</div>';
+    return;
+  }
+  list.innerHTML = _notifications.map(n => `
+    <div class="notif-item ${n.unread ? n.type || 'unread' : ''}" id="notif-${n.id}" onclick="markRead('${n.id}')">
+      <div class="notif-icon">${n.icon}</div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+      ${n.unread ? '<div class="notif-dot"></div>' : ''}
+    </div>
+  `).join('');
+}
+
+function markRead(id) {
+  const n = _notifications.find(x => x.id === id);
+  if (n) n.unread = false;
+  persistReadState();
+  renderNotifList();
+  updateNotifBadge();
+}
+
+function clearAllNotifs() {
+  _notifications.forEach(n => n.unread = false);
+  persistReadState();
+  renderNotifList();
+  updateNotifBadge();
+}
+
+function persistReadState() {
+  try {
+    const readIds = _notifications.filter(n => !n.unread).map(n => n.id);
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(readIds));
+  } catch(e) {}
+}
+
+/* ── Push a new dynamic notification (called from other features) ─────────── */
+function pushNotification(icon, title, desc, type = 'unread') {
+  const id = 'dyn_' + Date.now();
+  _notifications.unshift({ id, type, icon, title, desc, time: 'Just now', unread: true });
+  updateNotifBadge();
+  // Animate bell
+  const bell = document.getElementById('navNotifBtn');
+  if (bell) {
+    bell.style.animation = 'none';
+    bell.offsetHeight; // reflow
+    bell.style.animation = 'bellRing 0.5s ease';
+  }
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notifPanel');
+  _notifOpen = !_notifOpen;
+  panel.style.display = _notifOpen ? 'block' : 'none';
+  document.getElementById('navNotifBtn').classList.toggle('active', _notifOpen);
+  if (_notifOpen) renderNotifList();
+}
+
+/* Close panel when clicking outside */
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('notifPanel');
+  const btn   = document.getElementById('navNotifBtn');
+  if (_notifOpen && !panel.contains(e.target) && !btn.contains(e.target)) {
+    _notifOpen = false;
+    panel.style.display = 'none';
+    btn.classList.remove('active');
+  }
+});
+
+/* Bell ring animation */
+const bellStyle = document.createElement('style');
+bellStyle.textContent = `@keyframes bellRing { 0%{transform:rotate(0);}15%{transform:rotate(18deg);}30%{transform:rotate(-15deg);}45%{transform:rotate(12deg);}60%{transform:rotate(-8deg);}75%{transform:rotate(5deg);}100%{transform:rotate(0);} }`;
+document.head.appendChild(bellStyle);
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FEATURE 2 — AUTO-DETECT LOCATION ON PAGE LOAD
+════════════════════════════════════════════════════════════ -->
+<script>
+/* ── Global location state — shared across all features ──────────────────── */
+window._userLat      = null;
+window._userLon      = null;
+window._userCity     = null;
+window._userState    = null;
+window._userCountry  = null;
+window._locationReady = false;
+
+async function autoDetectLocation() {
+  const pill    = document.getElementById('locStatusPill');
+  const pillTxt = document.getElementById('locStatusText');
+
+  /* 1 — Try browser Geolocation API */
+  const coords = await new Promise(resolve => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      ()  => resolve(null),
+      { timeout: 7000, maximumAge: 300000 }
+    );
+  });
+
+  if (!coords) {
+    /* 2 — Fallback: IP-based geolocation (no key needed) */
+    try {
+      const r = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout(5000) });
+      if (r.ok) {
+        const d = await r.json();
+        if (d.latitude) {
+          coords.lat = d.latitude; coords.lon = d.longitude;
+          window._userCity    = d.city;
+          window._userState   = d.region;
+          window._userCountry = d.country_name;
+        }
+      }
+    } catch(e) {}
+  }
+
+  if (!coords) return; // give up silently
+
+  window._userLat = coords.lat;
+  window._userLon = coords.lon;
+
+  /* 3 — Reverse geocode to get city/state */
+  if (!window._userCity) {
+    try {
+      const g = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${coords.lat}&lon=${coords.lon}&format=json`, { signal: AbortSignal.timeout(5000) });
+      if (g.ok) {
+        const gd = await g.json();
+        window._userCity    = gd.address?.city || gd.address?.town || gd.address?.village || null;
+        window._userState   = gd.address?.state || null;
+        window._userCountry = gd.address?.country || null;
+      }
+    } catch(e) {}
+  }
+
+  window._locationReady = true;
+  const locLabel = [window._userCity, window._userState].filter(Boolean).join(', ') || `${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}`;
+
+  /* 4 — Update hidden lat/lon fields used by existing analyze form */
+  const latField = document.getElementById('lat');
+  const lonField = document.getElementById('lon');
+  if (latField && !latField.value) latField.value = coords.lat;
+  if (lonField && !lonField.value) lonField.value = coords.lon;
+
+  /* 5 — Show pill briefly then fade out */
+  if (pill && pillTxt) {
+    pillTxt.textContent = `📍 ${locLabel}`;
+    pill.classList.add('show');
+    setTimeout(() => pill.classList.remove('show'), 4000);
+  }
+
+  /* 6 — Auto-fill profile location field if empty */
+  const pLocField = document.getElementById('pLocation');
+  if (pLocField && !pLocField.value && locLabel) {
+    pLocField.placeholder = `Detected: ${locLabel}`;
+  }
+
+  /* 7 — Push a location notification */
+  pushNotification('📍', `Location detected: ${locLabel}`, `Weather & advisories are now personalised for your farm location.`, 'unread');
+
+  /* 8 — Auto-trigger weather dashboard refresh with real coordinates */
+  if (typeof initWeatherDashboard === 'function') {
+    try { initWeatherDashboard(); } catch(e) {}
+  }
+
+  console.log(`✅ Location detected: ${locLabel} (${coords.lat}, ${coords.lon})`);
+}
+
+/* Run location detection after language overlay is dismissed (app revealed) */
+const _origReveal = window.revealApp;
+window.revealApp = async function(...args) {
+  if (_origReveal) _origReveal.apply(this, args);
+  setTimeout(autoDetectLocation, 800); // slight delay after reveal animation
+};
+
+/* Also run if returning user (session restored, no overlay shown) */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    // If app is already revealed (returning user), run location detection
+    const app = document.getElementById('appWrapper');
+    if (app && app.classList.contains('revealed')) {
+      autoDetectLocation();
+    }
+  }, 1200);
+});
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FEATURE 3 — PERSONALISED AI CHAT WITH LOCATION + PROFILE
+════════════════════════════════════════════════════════════ -->
+<script>
+/**
+ * Build a rich farmer context string from:
+ * - Detected GPS location (city, state)
+ * - Logged-in farmer's profile (soil, crops, budget, etc.)
+ * Injected into every chat message sent to /api/chat
+ */
+function buildFarmerContext() {
+  const parts = [];
+
+  /* Location context */
+  if (window._locationReady && window._userCity) {
+    const loc = [window._userCity, window._userState, window._userCountry].filter(Boolean).join(', ');
+    parts.push(`Farmer's location: ${loc}`);
+    if (window._userLat) parts.push(`GPS: ${window._userLat.toFixed(4)}, ${window._userLon.toFixed(4)}`);
+  }
+
+  /* Profile context */
+  if (_authUser) {
+    parts.push(`Farmer name: ${document.getElementById('pFullName')?.value || _authUser.email.split('@')[0]}`);
+    const age       = document.getElementById('pAge')?.value;
+    const fieldSz   = document.getElementById('pFieldSize')?.value;
+    const soilType  = document.getElementById('pSoilType')?.value;
+    const soilPh    = document.getElementById('pSoilPh')?.value;
+    const budget    = document.getElementById('pBudget')?.value;
+    const irrig     = document.getElementById('pIrrigation')?.value;
+    const prev      = document.getElementById('pPrevCrops')?.value;
+    const planned   = document.getElementById('pPlannedCrops')?.value;
+    const notes     = document.getElementById('pSoilNotes')?.value;
+
+    if (age)      parts.push(`Age: ${age}`);
+    if (fieldSz)  parts.push(`Field size: ${fieldSz} acres`);
+    if (soilType) parts.push(`Soil type: ${soilType}`);
+    if (soilPh)   parts.push(`Soil pH: ${soilPh}`);
+    if (budget)   parts.push(`Budget/investment capacity: ₹${parseInt(budget).toLocaleString()}`);
+    if (irrig)    parts.push(`Irrigation: ${irrig}`);
+    if (prev)     parts.push(`Previously grown crops: ${prev}`);
+    if (planned)  parts.push(`Planned crops this season: ${planned}`);
+    if (notes)    parts.push(`Soil notes: ${notes}`);
+  }
+
+  return parts.length
+    ? `\n\n--- FARMER PROFILE CONTEXT (use this to personalize your advice) ---\n${parts.join('\n')}\n--- END CONTEXT ---`
+    : '';
+}
+
+/**
+ * Patch the existing sendChat function to inject farmer context.
+ * We wrap it non-destructively so all existing logic still works.
+ */
+(function patchSendChat() {
+  /* Wait until sendChat exists in window scope */
+  function tryPatch() {
+    if (typeof sendChat !== 'function') {
+      setTimeout(tryPatch, 200);
+      return;
+    }
+    const _origSendChat = sendChat;
+
+    window.sendChat = async function() {
+      /* Grab input before parent clears it */
+      const inp = document.getElementById('chatInput');
+      const originalMsg = inp?.value?.trim() || '';
+
+      /* Inject farmer context into system_note before original function runs */
+      const farmerCtx = buildFarmerContext();
+
+      if (farmerCtx && originalMsg) {
+        /* Temporarily patch fetch to intercept the /api/chat call */
+        const _origFetch = window.fetch;
+        window.fetch = async function(url, options = {}) {
+          if (typeof url === 'string' && url.includes('/api/chat') && options.body) {
+            try {
+              const body = JSON.parse(options.body);
+              /* Append farmer context to system_note */
+              body.system_note = (body.system_note || '') + farmerCtx;
+              body.farmer_location = window._userCity
+                ? [window._userCity, window._userState].filter(Boolean).join(', ')
+                : null;
+              options = { ...options, body: JSON.stringify(body) };
+            } catch(e) {}
+            /* Restore fetch immediately after this call */
+            window.fetch = _origFetch;
+          }
+          return _origFetch.apply(this, arguments);
+        };
+      }
+
+      return _origSendChat.apply(this, arguments);
+    };
+  }
+  tryPatch();
+})();
+
+/**
+ * Also patch the /api/chat endpoint on the backend to use the enriched system_note.
+ * The frontend already sends `system_note` in the body — we update auth.py's
+ * chat_with_agronomist to accept and use it.
+ * (Backend patch is in app.py — see modified app.py)
+ */
+
+/* ── Visual indicator: show "Personalised" badge in chat header when logged in ── */
+function updateChatPersonalisedBadge() {
+  const chatHeader = document.querySelector('.chat-header span');
+  if (!chatHeader) return;
+  const existing = document.getElementById('chatPersonalisedBadge');
+  if (existing) existing.remove();
+
+  if (_authUser || window._locationReady) {
+    const badge = document.createElement('span');
+    badge.id = 'chatPersonalisedBadge';
+    badge.style.cssText = `
+      font-size:10px;font-weight:600;
+      background:rgba(45,138,68,0.2);
+      border:1px solid rgba(45,138,68,0.35);
+      color:var(--c-green-300);padding:2px 8px;
+      border-radius:999px;margin-left:6px;
+    `;
+    badge.textContent = '✦ Personalised';
+    chatHeader.appendChild(badge);
+  }
+}
+
+/* Update badge when login state changes */
+const _origOnLoginSuccess = window.onLoginSuccess;
+window.onLoginSuccess = function(user, profile) {
+  if (_origOnLoginSuccess) _origOnLoginSuccess(user, profile);
+  setTimeout(updateChatPersonalisedBadge, 300);
+};
+setTimeout(updateChatPersonalisedBadge, 2000);
 </script>
 </body>
 </html>
