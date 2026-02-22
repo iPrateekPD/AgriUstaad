@@ -286,6 +286,12 @@ The app is configured for zero-config deployment on [Render](https://render.com)
 
 **Team AgriCore — Hacknovation 2.0**
 
+| Member | GitHub | Role |
+|---|---|---|
+| Nitesh Nemalpuri | [@niteshnemalpuri08](https://github.com/niteshnemalpuri08) | Team Lead & Full Stack Developer |
+| D Ritwika | [@Ritwika2301](https://github.com/Ritwika2301) | Collaborator |
+| Smruti | [@smrutiii06](https://github.com/smrutiii06) | Collaborator |
+
 Built with ❤️ for the farmers of India.
 
 ---
