@@ -130,7 +130,7 @@ body::after {
    LANGUAGE SELECTOR OVERLAY
 ═══════════════════════════════════════════ */
 #langOverlay {
-  position: fixed; inset: 0; z-index: 5000;
+  position: fixed; inset: 0; z-index: 99999;
   display: flex; align-items: center; justify-content: center;
   padding: 20px;
   transition: opacity 0.5s ease, transform 0.5s ease;
@@ -1633,9 +1633,9 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
   background: #080f0b;
   display: none; flex-direction: column;
   overflow: hidden;
-  animation: calPanelIn 0.45s cubic-bezier(0.34,1.2,0.64,1) both;
+  pointer-events: none;
 }
-#calendarPanel.open { display: flex; }
+#calendarPanel.open { display: flex; pointer-events: auto; animation: calPanelIn 0.45s cubic-bezier(0.34,1.2,0.64,1) both; }
 @keyframes calPanelIn {
   from { opacity:0; transform: translateY(28px) scale(0.98); }
   to   { opacity:1; transform: translateY(0) scale(1); }
@@ -2106,59 +2106,83 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
 @keyframes dotPulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
 
-/* ════════════════════════════════════
-   GLOBAL RESPONSIVENESS FIXES
-════════════════════════════════════ */
-* { box-sizing: border-box; }
-img, video, canvas, svg { max-width: 100%; }
-body { overflow-x: hidden; }
+.metric-box{cursor:default;transition:border-color 0.25s,box-shadow 0.25s;}
+.metric-box:hover{border-color:var(--c-green-500);box-shadow:0 0 22px rgba(45,138,68,0.18);}
+.metric-tooltip{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(160deg,rgba(10,46,20,0.97),rgba(8,15,11,0.99));border-top:1px solid rgba(94,203,116,0.18);padding:9px 12px 10px;font-size:11px;line-height:1.5;color:var(--c-text-2);transform:translateY(100%);transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);pointer-events:none;border-radius:0 0 var(--r-md) var(--r-md);}
+.metric-box:hover .metric-tooltip{transform:translateY(0);}
+.metric-tooltip strong{color:var(--c-green-300);display:block;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:2px;}
 
-/* Result card on mobile */
-@media (max-width: 759px) {
-  #resultCard { margin: 0; border-radius: 20px; }
-  .result-morph-header { flex-wrap: wrap; gap: 8px; }
-  .metrics-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .metric-box { padding: 12px 10px; }
-  .ra-action-bar { grid-template-columns: 1fr; }
-  .btn-passport { margin: 0; }
-  .ra-resource-grid { grid-template-columns: 1fr 1fr; }
-  #weatherDashboard { margin: 12px 10px 0; }
-  .wd-today { gap: 10px; }
-  .wd-today-temp { font-size: 30px; }
-  .wd-today-stats { gap: 8px; }
-}
-
-@media (max-width: 480px) {
-  .ra-section-body { padding: 12px 14px; }
-  .ra-value.large { font-size: 18px; }
-  .wd-today { padding: 14px; }
-  .wd-today-icon { font-size: 36px; }
-  .wd-7day { gap: 6px; }
-  .wd-day-card { width: 62px; padding: 10px 6px; }
-  #aiLogicBox { padding: 14px; }
-}
-
-@media (max-width: 360px) {
-  .ra-section-header { padding: 10px 12px; }
-  .ra-icon { width: 28px; height: 28px; font-size: 13px; }
-  .wd-day-card { width: 56px; }
-}
-
-/* macroPanel weather dashboard scroll */
-#macroPanel { overflow-y: auto; }
-#weatherDashboard { padding-bottom: 20px; }
-
-/* Scan card mobile */
-@media (max-width: 759px) {
-  #scanCard, #resultCard { width: 100% !important; }
-  .two-col { flex-direction: column !important; }
-}
-
-/* Cal body inner responsive */
-@media (max-width: 600px) {
-  .cal-body-inner { padding: 16px 12px 60px; }
-}
-
+/* ════ REDESIGNED RESULT ANALYSIS ════ */
+.ra-section{border-radius:16px;border:1px solid var(--c-border);background:rgba(255,255,255,0.03);overflow:hidden;margin-bottom:10px;transition:border-color 0.25s;}
+.ra-section:hover{border-color:rgba(94,203,116,0.2);}
+.ra-section-header{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(255,255,255,0.04);border-bottom:1px solid var(--c-border);}
+.ra-icon{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:15px;flex-shrink:0;}
+.ra-icon.detect{background:rgba(94,203,116,0.15);}
+.ra-icon.cause{background:rgba(240,168,48,0.15);}
+.ra-icon.remedy{background:rgba(45,138,68,0.2);}
+.ra-icon.govt{background:rgba(201,168,76,0.15);}
+.ra-icon.prevent{background:rgba(224,82,82,0.12);}
+.ra-icon.timing{background:rgba(100,180,255,0.12);}
+.ra-icon.resources{background:rgba(150,100,255,0.12);}
+.ra-section-title{font-size:11px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;color:var(--c-text-3);}
+.ra-section-body{padding:14px 16px;}
+.ra-value{font-size:15px;font-weight:600;color:var(--c-text);line-height:1.5;}
+.ra-value.large{font-family:var(--ff-display);font-size:20px;}
+.ra-sub{font-size:12px;color:var(--c-text-3);margin-top:4px;line-height:1.5;}
+.ra-severity-bar{margin-top:10px;background:rgba(255,255,255,0.06);border-radius:99px;height:6px;overflow:hidden;}
+.ra-severity-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(0.4,0,0.2,1);background:linear-gradient(90deg,var(--c-green-500),var(--c-green-300));}
+.ra-severity-fill.warn{background:linear-gradient(90deg,#e09020,#f0c030);}
+.ra-severity-fill.danger{background:linear-gradient(90deg,#c03030,#e05050);}
+.ra-list{list-style:none;display:flex;flex-direction:column;gap:7px;}
+.ra-list li{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--c-text-2);line-height:1.5;}
+.ra-list li::before{content:'→';color:var(--c-green-400);font-weight:700;flex-shrink:0;margin-top:1px;}
+.ra-list.prevent li::before{content:'✕';color:#e05252;}
+.ra-scheme-card{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.2);border-radius:12px;}
+.ra-scheme-name{font-size:13px;font-weight:600;color:var(--c-gold);}
+.ra-scheme-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:#080f0b;background:var(--c-gold);border-radius:99px;padding:5px 12px;text-decoration:none;white-space:nowrap;}
+.ra-weather-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.ra-weather-pill{display:flex;flex-direction:column;align-items:center;padding:8px 12px;border-radius:12px;min-width:60px;flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--c-border);font-size:11px;color:var(--c-text-3);gap:3px;}
+.ra-weather-pill .pill-val{font-family:var(--ff-mono);font-size:14px;font-weight:600;color:var(--c-green-300);}
+.ra-spray-status{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:99px;font-size:12px;font-weight:700;margin-top:6px;}
+.ra-spray-status.green{background:rgba(45,138,68,0.2);color:var(--c-green-300);border:1px solid rgba(45,138,68,0.3);}
+.ra-spray-status.yellow{background:rgba(240,168,48,0.15);color:#f0c030;border:1px solid rgba(240,168,48,0.3);}
+.ra-spray-status.red{background:rgba(224,82,82,0.12);color:#e05252;border:1px solid rgba(224,82,82,0.25);}
+.ra-resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ra-resource-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 8px;border-radius:14px;border:1px solid var(--c-border);background:rgba(255,255,255,0.04);font-family:var(--ff-body);cursor:pointer;color:var(--c-text-2);font-size:12px;font-weight:600;transition:all 0.22s;}
+.ra-resource-btn:hover{border-color:var(--c-green-500);background:rgba(45,138,68,0.1);color:var(--c-text);}
+.ra-resource-btn .rb-icon{font-size:22px;}
+.ra-action-bar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.ra-share-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 10px;border-radius:16px;border:none;cursor:pointer;font-family:var(--ff-body);font-size:13px;font-weight:700;background:linear-gradient(135deg,#25D366,#128C7E);color:white;transition:transform 0.2s,box-shadow 0.2s;box-shadow:0 6px 20px rgba(37,211,102,0.25);}
+.ra-share-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(37,211,102,0.35);}
+.ra-no-scheme{font-size:12px;color:var(--c-text-3);font-style:italic;}
+.scan-invalid-msg{display:none;align-items:center;gap:10px;padding:12px 16px;margin:8px 0;background:rgba(224,82,82,0.1);border:1px solid rgba(224,82,82,0.3);border-radius:14px;color:#e05252;font-size:13px;font-weight:600;}
+.scan-invalid-msg.show{display:flex;}
+/* 7-day weather dashboard */
+#weatherDashboard{margin:16px 14px 0;padding-bottom:20px;}
+.wd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.wd-title{font-family:var(--ff-display);font-size:18px;font-weight:600;color:var(--c-text);}
+.wd-location{font-size:11px;color:var(--c-text-3);display:flex;align-items:center;gap:4px;}
+.wd-location a{color:var(--c-green-300);text-decoration:none;font-weight:600;}
+.wd-today{display:flex;align-items:center;gap:16px;padding:18px;border-radius:20px;margin-bottom:14px;background:linear-gradient(135deg,rgba(10,46,20,0.8),rgba(20,80,35,0.6));border:1px solid rgba(94,203,116,0.2);position:relative;overflow:hidden;}
+.wd-today-icon{font-size:52px;line-height:1;}
+.wd-today-info{flex:1;}
+.wd-today-temp{font-family:var(--ff-display);font-size:36px;font-weight:600;color:var(--c-text);line-height:1;}
+.wd-today-desc{font-size:13px;color:var(--c-text-2);margin:4px 0;}
+.wd-today-stats{display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;}
+.wd-stat{font-size:11px;color:var(--c-text-3);display:flex;align-items:center;gap:4px;}
+.wd-stat span{color:var(--c-green-300);font-weight:600;font-family:var(--ff-mono);}
+.wd-7day{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;}
+.wd-7day::-webkit-scrollbar{display:none;}
+.wd-day-card{flex:0 0 auto;width:70px;padding:12px 8px;border-radius:16px;border:1px solid var(--c-border);background:rgba(255,255,255,0.04);display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;transition:border-color 0.2s,background 0.2s;}
+.wd-day-card:hover{border-color:var(--c-green-500);background:rgba(45,138,68,0.08);}
+.wd-day-card.today-card{border-color:var(--c-green-400);background:rgba(45,138,68,0.12);}
+.wd-day-name{font-size:11px;font-weight:700;color:var(--c-text-3);text-transform:uppercase;letter-spacing:0.04em;}
+.wd-day-icon{font-size:22px;}
+.wd-day-hi{font-size:14px;font-weight:700;color:var(--c-text);font-family:var(--ff-mono);}
+.wd-day-lo{font-size:11px;color:var(--c-text-3);font-family:var(--ff-mono);}
+.wd-day-rain{font-size:10px;color:#7ab8f5;}
+.wd-loading{text-align:center;padding:30px;color:var(--c-text-3);font-size:13px;}
+@media(max-width:480px){.ra-action-bar{grid-template-columns:1fr;}.wd-today{flex-direction:column;align-items:flex-start;}.wd-today-temp{font-size:28px;}}
 </style> </head>
 <body>
 
@@ -2635,6 +2659,7 @@ body { overflow-x: hidden; }
             <button class="btn-voice btn-voice-compact" id="voiceBtn" onclick="startVoiceScan()">🎤</button>
           </div>
 
+          <div id="scanInvalidMsg" class="scan-invalid-msg"><span style="font-size:20px;flex-shrink:0">🌿</span><span>Please scan a valid plant or crop image.</span></div>
           <div class="error-box" id="scanError">
             <span class="icon">⚠️</span>
             <div>
@@ -2642,11 +2667,6 @@ body { overflow-x: hidden; }
               <div class="error-msg" id="scanErrorMsg">Something went wrong.</div>
             </div>
             <button class="error-dismiss" onclick="dismissError('scanError')">✕</button>
-          </div>
-
-          <div id="scanInvalidMsg" class="scan-invalid-msg">
-            <span style="font-size:20px;flex-shrink:0;">🌿</span>
-            <span id="scanInvalidText">Please scan a valid plant or crop image.</span>
           </div>
 
           <div class="progress-wrap" id="progressWrap">
@@ -2680,8 +2700,6 @@ body { overflow-x: hidden; }
           </div>
 
           <div id="resultContent" style="display:none;">
-
-            <!-- ── Header ── -->
             <div class="result-morph-header" id="resultMorphHeader">
               <div class="rmh-icon mode-disease" id="rmhIcon">🦠</div>
               <div style="flex:1">
@@ -2695,7 +2713,6 @@ body { overflow-x: hidden; }
               <button onclick="location.reload()" class="btn-icon" title="New scan" style="margin-left:auto;flex-shrink:0;">🔄</button>
             </div>
 
-            <!-- Eco + ROI rings -->
             <div class="metrics-grid" id="metricsRow">
               <div class="metric-box">
                 <div class="ring-wrap">
@@ -2721,111 +2738,66 @@ body { overflow-x: hidden; }
               </div>
             </div>
 
-            <!-- ━━━ 1. DETECTION ━━━ -->
-            <div class="ra-section" id="ra-detection">
-              <div class="ra-section-header">
-                <div class="ra-icon detect">🔬</div>
-                <div class="ra-section-title">1 · Detection</div>
-              </div>
+            <!-- 1. DETECTION -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon detect">🔬</div><div class="ra-section-title">1 · Detection</div></div>
               <div class="ra-section-body">
                 <div class="ra-value large" id="ra-disease-name">—</div>
                 <div class="ra-sub" id="ra-confidence-text"></div>
-                <div class="ra-severity-bar" id="ra-sev-bar-wrap">
-                  <div class="ra-severity-fill" id="ra-sev-fill" style="width:0%"></div>
-                </div>
+                <div class="ra-severity-bar" id="ra-sev-bar-wrap"><div class="ra-severity-fill" id="ra-sev-fill" style="width:0%"></div></div>
                 <div class="ra-sub" id="ra-severity-label" style="margin-top:5px;"></div>
               </div>
             </div>
-
-            <!-- ━━━ 2. EXPECTED CAUSE ━━━ -->
-            <div class="ra-section" id="ra-cause">
-              <div class="ra-section-header">
-                <div class="ra-icon cause">🧬</div>
-                <div class="ra-section-title">2 · Expected Cause</div>
-              </div>
-              <div class="ra-section-body">
-                <div class="ra-value" id="ra-cause-text">—</div>
-              </div>
+            <!-- 2. EXPECTED CAUSE -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon cause">🧬</div><div class="ra-section-title">2 · Expected Cause</div></div>
+              <div class="ra-section-body"><div class="ra-value" id="ra-cause-text">—</div></div>
             </div>
-
-            <!-- ━━━ 3. REMEDIES ━━━ -->
-            <div class="ra-section" id="ra-remedy">
-              <div class="ra-section-header">
-                <div class="ra-icon remedy">💊</div>
-                <div class="ra-section-title">3 · Remedies — What to Do</div>
-              </div>
-              <div class="ra-section-body">
-                <ul class="ra-list" id="ra-remedy-list"></ul>
-              </div>
+            <!-- 3. REMEDIES -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon remedy">💊</div><div class="ra-section-title">3 · Remedies — What to Do</div></div>
+              <div class="ra-section-body"><ul class="ra-list" id="ra-remedy-list"></ul></div>
             </div>
-
-            <!-- ━━━ 4. GOVT SCHEMES ━━━ -->
-            <div class="ra-section" id="ra-govt">
-              <div class="ra-section-header">
-                <div class="ra-icon govt">🏛️</div>
-                <div class="ra-section-title">4 · Related Government Schemes</div>
-              </div>
-              <div class="ra-section-body" id="ra-govt-body">
-                <p class="ra-no-scheme">No specific scheme linked to this diagnosis.</p>
-              </div>
+            <!-- 4. GOVT SCHEMES -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon govt">🏛️</div><div class="ra-section-title">4 · Related Government Schemes</div></div>
+              <div class="ra-section-body" id="ra-govt-body"><p class="ra-no-scheme">No specific scheme linked to this diagnosis.</p></div>
             </div>
-
-            <!-- ━━━ 5. PREVENTION ━━━ -->
-            <div class="ra-section" id="ra-prevent">
-              <div class="ra-section-header">
-                <div class="ra-icon prevent">🚫</div>
-                <div class="ra-section-title">5 · Prevention — What Not to Do</div>
-              </div>
-              <div class="ra-section-body">
-                <ul class="ra-list prevent" id="ra-prevent-list"></ul>
-              </div>
+            <!-- 5. PREVENTION -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon prevent">🚫</div><div class="ra-section-title">5 · Prevention — What Not to Do</div></div>
+              <div class="ra-section-body"><ul class="ra-list prevent" id="ra-prevent-list"></ul></div>
             </div>
-
-            <!-- ━━━ 6. WHEN TO ACT ━━━ -->
-            <div class="ra-section" id="ra-timing">
-              <div class="ra-section-header">
-                <div class="ra-icon timing">⏰</div>
-                <div class="ra-section-title">6 · When to Act</div>
-              </div>
+            <!-- 6. WHEN TO ACT -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon timing">⏰</div><div class="ra-section-title">6 · When to Act</div></div>
               <div class="ra-section-body">
                 <div class="ra-weather-row" id="ra-wx-pills"></div>
                 <div id="ra-spray-badge" class="ra-spray-status green">✅ Conditions safe for spraying</div>
                 <div class="ra-sub" id="ra-wx-reason" style="margin-top:8px;"></div>
               </div>
             </div>
-
-            <!-- ━━━ 7. RESOURCES ━━━ -->
-            <div class="ra-section" id="ra-resources">
-              <div class="ra-section-header">
-                <div class="ra-icon resources">🛒</div>
-                <div class="ra-section-title">7 · Where to Get Resources</div>
-              </div>
+            <!-- 7. RESOURCES -->
+            <div class="ra-section">
+              <div class="ra-section-header"><div class="ra-icon resources">🛒</div><div class="ra-section-title">7 · Where to Get Resources</div></div>
               <div class="ra-section-body">
                 <div class="ra-resource-grid">
-                  <button class="ra-resource-btn" onclick="openModal('shop')">
-                    <span class="rb-icon">💊</span>
-                    <span>Buy Medicine</span>
-                  </button>
-                  <button class="ra-resource-btn" onclick="openModal('sprayer')">
-                    <span class="rb-icon">🚜</span>
-                    <span>Rent Sprayer</span>
-                  </button>
+                  <button class="ra-resource-btn" onclick="openModal('shop')"><span class="rb-icon">💊</span><span>Buy Medicine</span></button>
+                  <button class="ra-resource-btn" onclick="openModal('sprayer')"><span class="rb-icon">🚜</span><span>Rent Sprayer</span></button>
                 </div>
               </div>
             </div>
-
-            <!-- ━━━ 8+9. DOWNLOAD + SHARE ━━━ -->
+            <!-- 8+9. DOWNLOAD + SHARE -->
             <div class="ra-action-bar">
               <button id="exportPassportBtn" onclick="exportHealthPassport()" class="btn-passport" style="display:none;margin:0;" aria-label="Export Health Passport">
-                <span class="passport-btn-icon" style="font-size:20px;">🏥</span>
-                <div class="passport-btn-text">
-                  <span class="passport-btn-title" style="font-size:13px;">Download PDF</span>
-                  <span class="passport-btn-sub" style="font-size:10px;">Health Passport</span>
+                <span style="font-size:20px;">🏥</span>
+                <div style="flex:1;text-align:left;">
+                  <span style="display:block;font-size:13px;font-weight:700;">Download PDF</span>
+                  <span style="display:block;font-size:10px;color:var(--c-text-3);">Health Passport</span>
                 </div>
               </button>
               <button class="ra-share-btn" onclick="shareReport()">
-                <span style="font-size:18px;">💬</span>
-                <span data-i18n="shareWhatsapp">Share via WhatsApp</span>
+                <span style="font-size:18px;">💬</span><span data-i18n="shareWhatsapp">Share via WhatsApp</span>
               </button>
             </div>
 
@@ -2837,8 +2809,7 @@ body { overflow-x: hidden; }
             <div id="subsidyBox" style="display:none;"><span id="subsidyName"></span><a id="schemeLink" href="#" target="_blank"></a></div>
             <div id="weatherBox" style="display:none;"><span id="weatherText"></span></div>
             <div id="marketGrid" style="display:none;"></div>
-          </div>
-        </section>
+          </div></section>
 
       </div><!-- /#microPanel -->
 
@@ -2848,16 +2819,12 @@ body { overflow-x: hidden; }
         <!-- Leaflet Map -->
         <div id="communityMap"></div>
 
-        <!-- ── 7-Day Live Weather Dashboard ── -->
+        <!-- 7-Day Weather Dashboard -->
         <div id="weatherDashboard">
           <div class="wd-header">
             <div class="wd-title">🌦️ Live Weather Forecast</div>
-            <div class="wd-location">
-              <span id="wd-loc-text">Detecting location…</span>
-              <a id="wd-maps-link" href="#" target="_blank" title="Open in Maps">📍</a>
-            </div>
+            <div class="wd-location"><span id="wd-loc-text">Detecting location…</span>&nbsp;<a id="wd-maps-link" href="#" target="_blank">📍</a></div>
           </div>
-          <!-- Today summary -->
           <div class="wd-today" id="wd-today">
             <div class="wd-today-icon" id="wd-today-icon">🌤️</div>
             <div class="wd-today-info">
@@ -2867,16 +2834,12 @@ body { overflow-x: hidden; }
                 <div class="wd-stat">💧 Humidity <span id="wd-hum">--%</span></div>
                 <div class="wd-stat">🌧 Rain <span id="wd-rain">--mm</span></div>
                 <div class="wd-stat">💨 Wind <span id="wd-wind">--km/h</span></div>
-                <div class="wd-stat">👁 UV <span id="wd-uv">--</span></div>
+                <div class="wd-stat">☀️ UV <span id="wd-uv">--</span></div>
               </div>
             </div>
           </div>
-          <!-- 7-day strip -->
-          <div class="wd-7day" id="wd-7day">
-            <div class="wd-loading">Loading 7-day forecast…</div>
-          </div>
+          <div class="wd-7day" id="wd-7day"><div class="wd-loading">Loading 7-day forecast…</div></div>
         </div>
-
         <!-- AI Logic Box -->
         <div id="aiLogicBox">
           <div class="logic-left">
@@ -3192,7 +3155,8 @@ async function enterApp() {
     btn.disabled = false;
     btn.innerHTML = 'Enter AgriUstaad →';
     status.className = 'lang-status error';
-    status.textContent = '⚠ Translation failed: ' + (err.message || err);
+    status.textContent = 'Launching…';
+    await launchApp();
   }
 }
 
@@ -3208,7 +3172,11 @@ async function translateStrings(strings, langCode) {
   const joined   = stripped.join(DELIM);
 
   const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langCode}&dt=t&q=${encodeURIComponent(joined)}`;
-  const res  = await fetch(url);
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 8000);
+  let res;
+  try { res = await fetch(url, { signal: controller.signal }); }
+  finally { clearTimeout(timeoutId); }
   if (!res.ok) throw new Error(`Google Translate HTTP ${res.status}`);
 
   const data = await res.json();
@@ -3343,6 +3311,7 @@ function resetLanguage() {
    INIT — show lang popup only on fresh visit,
    skip if returning from map/history (same session)
 ════════════════════════════════════════════════════════ */
+const API_BASE = ''; // Set to your Render URL for Netlify deploy
 let geminiKey = ''; // kept for compat, unused
 let selectedLang = 'en';
 let selectedLangName = 'English';
@@ -3495,7 +3464,7 @@ async function autoClassifyImage(file) {
         contents: [{
           parts: [
             { inline_data: { mime_type: mimeType, data: b64 } },
-            { text: `You are an agricultural AI validator. First check: is this image of a plant, crop, leaf, soil, or agricultural produce? If NOT (e.g. phone, table, chair, wall, person, random object), reply with exactly: "invalid". If YES, classify into ONE of: "field" (crop disease/leaf problem), "yield" (harvest-ready crop/fruit/plant), "soil" (soil or ground), "crate" (produce crate/box/batch). Reply with ONLY the single keyword, nothing else.` }
+            { text: `You are an agricultural AI validator. First check: is this image of a plant, crop, leaf, soil, or agricultural produce? If NOT (e.g. phone, table, chair, person, wall, random object), reply exactly: "invalid". If YES, classify into ONE of: "field" (crop disease/leaf problem), "yield" (harvest-ready crop/fruit/plant), "soil" (soil or ground), "crate" (produce crate/box/batch). Reply ONLY the single keyword.` }
           ]
         }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 10 }
@@ -3505,8 +3474,6 @@ async function autoClassifyImage(file) {
     if (!response.ok) throw new Error('API error ' + response.status);
     const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase() || '';
-
-    // Show validation error if not a plant/crop image
     if (text === 'invalid') {
       showInvalidScanMsg('🌿 Please scan a valid plant or crop image. Non-agricultural objects cannot be analysed.');
       _selectedFile = null;
@@ -3515,7 +3482,6 @@ async function autoClassifyImage(file) {
       document.getElementById('preview').style.display = 'none';
       document.getElementById('uploadContent').style.display = '';
       document.getElementById('btnAnalyze').disabled = true;
-      document.getElementById('btnAnalyze').classList.remove('ready');
       return;
     }
     hideInvalidScanMsg();
@@ -3531,7 +3497,6 @@ async function autoClassifyImage(file) {
     if (filename.includes('soil') || filename.includes('dirt') || filename.includes('ground')) fallback = 'soil';
     else if (filename.includes('crate') || filename.includes('box') || filename.includes('harvest')) fallback = 'crate';
     else if (filename.includes('yield') || filename.includes('fruit')) fallback = 'yield';
-    hideInvalidScanMsg();
     aiClassifiedMode = fallback;
     applyMode(fallback);
   } finally {
@@ -3754,7 +3719,7 @@ async function processVoiceQuery(text) {
   document.getElementById('cvMicLabel').textContent = 'Processing…';
 
   try {
-    const res  = await fetch('/api/chat', {
+    const res  = await fetch(API_BASE + '/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ message: text, lang: selectedLang, lang_name: selectedLangName, system_note: '' })
@@ -3893,100 +3858,130 @@ function inlineMd(text) {
     .replace(/`(.*?)`/g, '<code>$1</code>');
 }
 
-function buildDiagCards(mode, d) {
-  // Legacy compat — now delegates to renderResultSections
-  renderResultSections(mode, d);
+
+/* ════ RENDER RESULT SECTIONS ════ */
+function renderResultSections(mode, d) {
+  const el = id => document.getElementById(id);
+  const diseaseName = mode==='yield'?(d.yield_estimate||'Yield Analysis'):mode==='soil'?(d.soil_type||'Soil Analysis'):(d.disease_name||'Unknown');
+  el('ra-disease-name').textContent = diseaseName;
+  const conf = d.confidence;
+  el('ra-confidence-text').textContent = conf!=null?`AI Confidence: ${conf}% · Mode: ${mode.charAt(0).toUpperCase()+mode.slice(1)}`:`Analysis Mode: ${mode.charAt(0).toUpperCase()+mode.slice(1)}`;
+  const sev = parseFloat(d.severity_score)||0;
+  const sevWrap = el('ra-sev-bar-wrap'), sevFill = el('ra-sev-fill'), sevLabel = el('ra-severity-label');
+  if (mode!=='yield'&&mode!=='soil'&&sev>0) {
+    sevWrap.style.display='';
+    sevFill.style.width=Math.min(sev,100)+'%';
+    sevFill.className='ra-severity-fill'+(sev>66?' danger':sev>33?' warn':'');
+    sevLabel.textContent=`Severity: ${sev}% — ${sev>66?'High — Act immediately':sev>33?'Moderate — Monitor closely':'Low — Early stage'}`;
+  } else { sevWrap.style.display='none'; sevLabel.textContent=mode==='yield'?`Harvest Readiness: ${d.harvest_readiness||'—'}`:''; }
+
+  el('ra-cause-text').textContent = d.expected_cause||(mode==='soil'?`Soil: ${d.soil_type||'—'}. Moisture: ${d.moisture_level||'—'}.`:mode==='yield'?`Market: ${d.market_advice||'—'}`:d.disease_name?`Likely caused by fungal/bacterial/pest infection. Environmental stress (humidity, temperature) may accelerate spread.`:'—');
+
+  const remedyList = el('ra-remedy-list'); remedyList.innerHTML='';
+  const raw = d.treatment_advice||d.market_advice||'';
+  const remedies = raw.split(/(?<=[.!?])\s+(?=[A-Z])|\n/).map(s=>s.trim()).filter(s=>s.length>8).slice(0,6);
+  if(!remedies.length) remedies.push(raw||'Consult your local agricultural extension officer.');
+  remedies.forEach(r=>{const li=document.createElement('li');li.textContent=r.replace(/^[-•]\s*/,'');remedyList.appendChild(li);});
+
+  const govtBody = el('ra-govt-body'); govtBody.innerHTML='';
+  if(d.govt_subsidy){
+    const url = d.govt_scheme_url||'https://pmfby.gov.in';
+    govtBody.innerHTML=`<div class="ra-scheme-card"><div><div class="ra-scheme-name">🏛️ ${escapeHtml(d.govt_subsidy)}</div><div class="ra-sub" style="margin-top:3px;">Government scheme related to this diagnosis</div></div><a href="${url}" target="_blank" class="ra-scheme-link">Know More ↗</a></div>`;
+    document.getElementById('subsidyName').innerText=d.govt_subsidy;
+  } else {
+    govtBody.innerHTML='<p class="ra-no-scheme">No specific scheme linked. Visit <a href="https://pmfby.gov.in" target="_blank" style="color:var(--c-gold);">pmfby.gov.in</a> for crop insurance.</p>';
+  }
+
+  const preventList = el('ra-prevent-list'); preventList.innerHTML='';
+  const preventItems = d.prevention_tips?(Array.isArray(d.prevention_tips)?d.prevention_tips:d.prevention_tips.split(/[.\n]/).filter(s=>s.trim().length>5)):['Avoid overhead irrigation which spreads spores.','Do not apply treatments during rain or high winds.','Do not ignore early symptoms — delayed action worsens spread.','Avoid overcrowding plants; maintain proper spacing.','Do not reuse infected crop debris as compost.'];
+  preventItems.slice(0,5).forEach(p=>{const li=document.createElement('li');li.textContent=p.trim().replace(/^[-•]\s*/,'');preventList.appendChild(li);});
 }
 
-function renderResultSections(mode, d) {
-  // ── 1. DETECTION ──
-  const diseaseName = mode === 'yield' ? (d.yield_estimate || 'Yield Analysis')
-                    : mode === 'soil'  ? (d.soil_type || 'Soil Analysis')
-                    : mode === 'crate' ? (d.disease_name || 'Quality Grade')
-                    : (d.disease_name || 'Unknown');
-  const el = (id) => document.getElementById(id);
+/* ════ SCAN VALIDATION ════ */
+function showInvalidScanMsg(msg){const el=document.getElementById('scanInvalidMsg');if(el){el.querySelector('span:last-child').textContent=msg;el.classList.add('show');}}
+function hideInvalidScanMsg(){const el=document.getElementById('scanInvalidMsg');if(el)el.classList.remove('show');}
 
-  el('ra-disease-name').textContent = diseaseName;
+/* ════ 7-DAY WEATHER DASHBOARD ════ */
+const WX_ICONS={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',53:'🌦️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'❄️',73:'❄️',75:'❄️',80:'🌦️',81:'🌧️',82:'⛈️',95:'⛈️',96:'⛈️',99:'⛈️'};
+const WX_DESC={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Moderate rain',65:'Heavy rain',80:'Showers',81:'Heavy showers',82:'Violent showers',95:'Thunderstorm'};
 
-  const conf = d.confidence;
-  el('ra-confidence-text').textContent = conf != null
-    ? `AI Confidence: ${conf}% · Mode: ${mode.charAt(0).toUpperCase()+mode.slice(1)}`
-    : `Analysis Mode: ${mode.charAt(0).toUpperCase()+mode.slice(1)}`;
+async function initWeatherDashboard(){
+  let lat=parseFloat(document.getElementById('lat')?.value)||20.296;
+  let lon=parseFloat(document.getElementById('lon')?.value)||85.824;
+  try{if(navigator.geolocation)await new Promise(res=>navigator.geolocation.getCurrentPosition(p=>{lat=p.coords.latitude;lon=p.coords.longitude;res();},res,{timeout:4000}));}catch(e){}
+  const mapsLink=document.getElementById('wd-maps-link');
+  if(mapsLink)mapsLink.href=`https://www.google.com/maps?q=${lat},${lon}`;
+  try{const geo=await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);if(geo.ok){const gd=await geo.json();const locText=document.getElementById('wd-loc-text');const city=gd.address?.city||gd.address?.town||gd.address?.village||'Your Location';const state=gd.address?.state||'';if(locText)locText.textContent=`${city}${state?', '+state:''} 📍`;}}catch(e){}
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,uv_index_max&hourly=relativehumidity_2m&timezone=auto&forecast_days=7`;
+    const res=await fetch(url);const data=await res.json();
+    const daily=data.daily;if(!daily)return;
+    const todayCode=daily.weathercode[0];
+    document.getElementById('wd-today-icon').textContent=WX_ICONS[todayCode]||'🌤️';
+    document.getElementById('wd-today-temp').textContent=Math.round(daily.temperature_2m_max[0])+'°C';
+    document.getElementById('wd-today-desc').textContent=(WX_DESC[todayCode]||'Weather')+' · Low '+Math.round(daily.temperature_2m_min[0])+'°C';
+    const hourlyHum=data.hourly?.relativehumidity_2m?.slice(0,24)||[];
+    const avgHum=hourlyHum.length?Math.round(hourlyHum.reduce((a,b)=>a+b,0)/hourlyHum.length):'--';
+    document.getElementById('wd-hum').textContent=avgHum+'%';
+    document.getElementById('wd-rain').textContent=(daily.precipitation_sum[0]?.toFixed(1)||'0')+'mm';
+    document.getElementById('wd-wind').textContent=Math.round(daily.windspeed_10m_max[0])+'km/h';
+    document.getElementById('wd-uv').textContent=daily.uv_index_max?.[0]?.toFixed(1)||'--';
+    const strip=document.getElementById('wd-7day');strip.innerHTML='';
+    for(let i=0;i<daily.time.length;i++){
+      const date=new Date(daily.time[i]+'T12:00:00');
+      const dayName=i===0?'Today':date.toLocaleDateString('en-IN',{weekday:'short'});
+      const code=daily.weathercode[i];const rain=daily.precipitation_sum[i]?.toFixed(1)||'0';
+      const card=document.createElement('div');card.className='wd-day-card'+(i===0?' today-card':'');
+      card.innerHTML=`<div class="wd-day-name">${dayName}</div><div class="wd-day-icon">${WX_ICONS[code]||'🌤️'}</div><div class="wd-day-hi">${Math.round(daily.temperature_2m_max[i])}°</div><div class="wd-day-lo">${Math.round(daily.temperature_2m_min[i])}°</div>${parseFloat(rain)>0?`<div class="wd-day-rain">💧${rain}mm</div>`:''}`;
+      strip.appendChild(card);
+    }
+  }catch(e){document.getElementById('wd-7day').innerHTML='<div class="wd-loading">Could not load forecast.</div>';}
+}
 
-  const sev = parseFloat(d.severity_score) || 0;
-  const sevFill = el('ra-sev-fill');
-  const sevLabel = el('ra-severity-label');
-  const sevBarWrap = el('ra-sev-bar-wrap');
-  if (mode !== 'yield' && mode !== 'soil' && sev > 0) {
-    sevBarWrap.style.display = '';
-    sevFill.style.width = Math.min(sev, 100) + '%';
-    sevFill.className = 'ra-severity-fill' + (sev > 66 ? ' danger' : sev > 33 ? ' warn' : '');
-    sevLabel.textContent = `Severity: ${sev}% — ${sev > 66 ? 'High — Act immediately' : sev > 33 ? 'Moderate — Monitor closely' : 'Low — Early stage'}`;
+function buildDiagCards(mode, d) {
+  renderResultSections(mode, d);
+  const container = document.getElementById('diagCards');
+  const empty     = document.getElementById('emptyState');
+  container.innerHTML = '';
+
+  let rows = [];
+  if (mode === 'yield') {
+    rows = [
+      { icon:'🍎', labelKey:'labelYield',     value: d.yield_estimate,    rich: false },
+      { icon:'📉', labelKey:'labelReadiness',  value: d.harvest_readiness, rich: false },
+      { icon:'💡', labelKey:'labelMarket',     value: d.market_advice,     rich: true  },
+    ];
+  } else if (mode === 'soil') {
+    rows = [
+      { icon:'🟤', labelKey:'labelSoilType',  value: d.soil_type,        rich: false },
+      { icon:'💧', labelKey:'labelMoisture',  value: d.moisture_level,   rich: false },
+      { icon:'🧪', labelKey:'labelTreatAdv',  value: d.treatment_advice, rich: true  },
+    ];
   } else {
-    sevBarWrap.style.display = 'none';
-    sevLabel.textContent = mode === 'yield' ? `Harvest Readiness: ${d.harvest_readiness || '—'}` : '';
+    rows = [
+      { icon:'🦠', labelKey:'labelCondition', value: d.disease_name,     rich: false },
+      { icon:'⚠️', labelKey:'labelSeverity',  value: d.severity_score != null ? d.severity_score + '%' : null, severity: d.severity_score, rich: false },
+      { icon:'💊', labelKey:'labelTreatment', value: d.treatment_advice, rich: true  },
+    ];
   }
 
-  // ── 2. EXPECTED CAUSE ──
-  const causeText = d.expected_cause
-    || (mode === 'soil'  ? `Soil type: ${d.soil_type || '—'}. Moisture: ${d.moisture_level || '—'}.`)
-    : (mode === 'yield'  ? `Market insight: ${d.market_advice || '—'}`)
-    : (d.disease_name    ? `Likely caused by fungal/bacterial/pest infection on ${d.disease_name}. Environmental stress (humidity, temperature) may accelerate spread.`
-                         : '—');
-  el('ra-cause-text').textContent = causeText;
+  const hasData = rows.some(r => r.value != null && r.value !== '');
+  if (!hasData) { empty.classList.add('visible'); return; }
+  empty.classList.remove('visible');
 
-  // ── 3. REMEDIES ──
-  const remedyList = el('ra-remedy-list');
-  remedyList.innerHTML = '';
-  const treatmentRaw = d.treatment_advice || d.market_advice || '';
-  // Split on sentence boundaries or bullet patterns
-  const remedies = treatmentRaw
-    .split(/(?<=[.!?])\s+(?=[A-Z])|
-|•|-\s+/)
-    .map(s => s.trim()).filter(s => s.length > 8).slice(0, 6);
-  if (remedies.length === 0) remedies.push(treatmentRaw || 'Consult your local agricultural extension officer.');
-  remedies.forEach(r => {
-    const li = document.createElement('li');
-    li.textContent = r.replace(/^[-•]\s*/, '');
-    remedyList.appendChild(li);
-  });
-
-  // ── 4. GOVT SCHEMES ──
-  const govtBody = el('ra-govt-body');
-  govtBody.innerHTML = '';
-  if (d.govt_subsidy) {
+  rows.forEach(row => {
     const card = document.createElement('div');
-    card.className = 'ra-scheme-card';
-    const schemeUrl = d.govt_scheme_url || 'https://pmfby.gov.in';
-    card.innerHTML = `
-      <div>
-        <div class="ra-scheme-name">🏛️ ${escapeHtml(d.govt_subsidy)}</div>
-        <div class="ra-sub" style="margin-top:3px;">Government scheme related to this diagnosis</div>
-      </div>
-      <a href="${schemeUrl}" target="_blank" class="ra-scheme-link">Know More ↗</a>`;
-    govtBody.appendChild(card);
-    // Also update legacy hidden element
-    document.getElementById('subsidyName').innerText = d.govt_subsidy;
-  } else {
-    govtBody.innerHTML = '<p class="ra-no-scheme">No specific scheme linked to this diagnosis. Visit <a href="https://pmfby.gov.in" target="_blank" style="color:var(--c-gold);">pmfby.gov.in</a> for general crop insurance.</p>';
-  }
+    card.className = 'diag-card' + (row.rich ? ' diag-card-rich' : '');
+    const label = T[row.labelKey] || row.labelKey;
+    let extra = '';
+    if (row.severity != null) extra = `<div class="severity-bar-wrap"><div class="severity-bar-track"><div class="severity-bar-fill" style="width:${Math.min(row.severity,100)}%"></div></div></div>`;
 
-  // ── 5. PREVENTION ──
-  const preventList = el('ra-prevent-list');
-  preventList.innerHTML = '';
-  const preventItems = d.prevention_tips
-    ? (Array.isArray(d.prevention_tips) ? d.prevention_tips : d.prevention_tips.split(/[.\n]/).filter(s=>s.trim().length>5))
-    : [
-        'Avoid overhead irrigation which spreads spores.',
-        'Do not apply treatments during rain or high winds.',
-        'Do not ignore early symptoms — delayed action worsens spread.',
-        'Avoid overcrowding plants; maintain proper spacing.',
-        'Do not reuse infected crop debris as compost.',
-      ];
-  preventItems.slice(0, 5).forEach(p => {
-    const li = document.createElement('li');
-    li.textContent = p.trim().replace(/^[-•]\s*/, '');
-    preventList.appendChild(li);
+    const valueHTML = row.rich
+      ? `<div class="diag-value diag-value-rich">${parseToHTML(row.value)}</div>`
+      : `<div class="diag-value">${row.value != null ? escapeHtml(String(row.value)) : '—'}</div>`;
+
+    card.innerHTML = `<div class="diag-icon">${row.icon}</div><div class="diag-info"><div class="diag-label">${escapeHtml(label)}</div>${valueHTML}${extra}</div>`;
+    container.appendChild(card);
   });
 }
 
@@ -4051,7 +4046,7 @@ async function runAnalysis() {
 
   try {
     setProgress(40, T.progSending || 'Sending to AI…');
-    const res  = await fetch('/analyze', { method: 'POST', body: fd });
+    const res  = await fetch(API_BASE + '/analyze', { method: 'POST', body: fd });
     setProgress(75, T.progProcessing || 'Processing results…');
     const data = await res.json();
     setProgress(100, T.progDone || 'Done!');
@@ -4117,41 +4112,78 @@ async function runAnalysis() {
 
     document.getElementById('weatherText').innerText = w.status_reason || "Unavailable";
     buildDiagCards(currMode, d);
-    morphDashboard(currMode);
 
-    // ── Populate "When to Act" section ──
-    const wxPills = document.getElementById('ra-wx-pills');
-    if (wxPills) {
+    // ── Populate "When to Act" weather pills ──
+    // Try multiple backend field-name variants, then fall back to Open-Meteo
+    const _lat = parseFloat(document.getElementById('lat').value) || 20.296;
+    const _lon = parseFloat(document.getElementById('lon').value) || 85.824;
+    async function populateWxPills(wxData) {
+      const wxPills = document.getElementById('ra-wx-pills');
+      if (!wxPills) return;
+      const temp  = wxData.temp_max ?? wxData.temperature ?? wxData.temp ?? null;
+      const hum   = wxData.humidity ?? wxData.humidity_pct ?? wxData.relative_humidity ?? null;
+      const rain  = wxData.rainfall ?? wxData.rainfall_mm ?? wxData.precipitation ?? null;
+      const wind  = wxData.wind_speed ?? wxData.wind_kmh ?? wxData.wind ?? null;
       wxPills.innerHTML = '';
-      const wxStats = [
-        { label: 'Temp', val: w.temp_max ? w.temp_max + '°C' : '--', icon: '🌡' },
-        { label: 'Humidity', val: w.humidity ? w.humidity + '%' : '--', icon: '💧' },
-        { label: 'Rain', val: w.rainfall != null ? w.rainfall + 'mm' : '--', icon: '🌧' },
-        { label: 'Wind', val: w.wind_speed ? w.wind_speed + 'km/h' : '--', icon: '💨' },
-      ];
-      wxStats.forEach(s => {
-        const pill = document.createElement('div');
-        pill.className = 'ra-weather-pill';
-        pill.innerHTML = `<span>${s.icon}</span><span class="pill-val">${s.val}</span><span>${s.label}</span>`;
-        wxPills.appendChild(pill);
+      [{icon:'🌡',label:'Temp',    val: temp  != null ? Math.round(temp)+'°C' : '--'},
+       {icon:'💧',label:'Humidity',val: hum   != null ? Math.round(hum)+'%'  : '--'},
+       {icon:'🌧',label:'Rain',    val: rain  != null ? parseFloat(rain).toFixed(1)+'mm' : '--'},
+       {icon:'💨',label:'Wind',    val: wind  != null ? Math.round(wind)+'km/h' : '--'},
+      ].forEach(s=>{
+        const p = document.createElement('div');
+        p.className = 'ra-weather-pill';
+        p.innerHTML = `<span>${s.icon}</span><span class="pill-val">${s.val}</span><span>${s.label}</span>`;
+        wxPills.appendChild(p);
       });
-    }
-    const sprayBadge = document.getElementById('ra-spray-badge');
-    const wxReason = document.getElementById('ra-wx-reason');
-    if (sprayBadge) {
-      const status = (w.spray_status || 'unknown').toLowerCase();
-      if (status === 'green') {
-        sprayBadge.className = 'ra-spray-status green';
-        sprayBadge.textContent = '✅ Conditions safe for spraying';
-      } else if (status === 'yellow') {
-        sprayBadge.className = 'ra-spray-status yellow';
-        sprayBadge.textContent = '⚠️ Caution — check before spraying';
-      } else {
-        sprayBadge.className = 'ra-spray-status red';
-        sprayBadge.textContent = '🚫 Do not spray now';
+      // Update spray badge & reason using merged data
+      const sprayBadge = document.getElementById('ra-spray-badge');
+      if (sprayBadge) {
+        const st = (wxData.spray_status||'').toLowerCase();
+        // If spray_status not set by backend, compute it from wind/rain
+        let badge = 'red', badgeText = '🚫 Do not spray now';
+        if (st === 'green') { badge='green'; badgeText='✅ Conditions safe for spraying'; }
+        else if (st === 'yellow') { badge='yellow'; badgeText='⚠️ Caution — check before spraying'; }
+        else if (!st) {
+          const w2 = wind ?? 0, r2 = rain ?? 0, h2 = hum ?? 0;
+          if (w2 < 15 && r2 < 5) { badge='green'; badgeText='✅ Conditions safe for spraying'; }
+          else if (w2 < 25 && r2 < 10) { badge='yellow'; badgeText='⚠️ Caution — check before spraying'; }
+        }
+        sprayBadge.className = 'ra-spray-status ' + badge;
+        sprayBadge.textContent = badgeText;
       }
+      const wxReason = document.getElementById('ra-wx-reason');
+      if (wxReason) wxReason.textContent = wxData.status_reason || '';
     }
-    if (wxReason) wxReason.textContent = w.status_reason || '';
+
+    // If backend supplied enough, use it; otherwise fetch live from Open-Meteo
+    const backendHasWx = (w.temp_max ?? w.temperature ?? w.temp) != null;
+    if (backendHasWx) {
+      await populateWxPills(w);
+    } else {
+      // Show dashes immediately, then update once Open-Meteo responds
+      await populateWxPills(w); // renders with dashes
+      try {
+        const omUrl = `https://api.open-meteo.com/v1/forecast?latitude=${_lat}&longitude=${_lon}` +
+          `&daily=temperature_2m_max,precipitation_sum,windspeed_10m_max&hourly=relativehumidity_2m&timezone=auto&forecast_days=1`;
+        const omRes  = await fetch(omUrl);
+        if (omRes.ok) {
+          const omData = await omRes.json();
+          const omWind = omData.daily?.windspeed_10m_max?.[0];
+          const merged = {
+            ...w,
+            temp_max:    omData.daily?.temperature_2m_max?.[0],
+            humidity:    omData.hourly?.relativehumidity_2m
+                           ? Math.round(omData.hourly.relativehumidity_2m.slice(0,12).reduce((a,b)=>a+b,0)/12)
+                           : null,
+            rainfall:    omData.daily?.precipitation_sum?.[0],
+            wind_speed:  omWind,
+            spray_status: w.spray_status || (omWind < 15 ? 'green' : omWind < 25 ? 'yellow' : 'red'),
+          };
+          await populateWxPills(merged);
+        }
+      } catch(omErr) { /* keep dashes */ }
+    }
+    morphDashboard(currMode);
 
     if (d.disease_name) {
       lastDiagnosisState = { disease: d.disease_name, mode: currMode, severity: d.severity_score };
@@ -4368,7 +4400,7 @@ async function sendChat() {
     : '';
 
   try {
-    const res  = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+    const res  = await fetch(API_BASE + '/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
       message: txt,
       lang: selectedLang,
       lang_name: selectedLangName,
@@ -4398,146 +4430,8 @@ async function sendChat() {
   body.scrollTop = body.scrollHeight;
 }
 
-
-/* ══════════════════════════════════════════════════════
-   🌦️ 7-DAY LIVE WEATHER DASHBOARD (Maps Tab)
-══════════════════════════════════════════════════════ */
-const WX_ICONS = {
-  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
-  45:'🌫️', 48:'🌫️',
-  51:'🌦️', 53:'🌦️', 55:'🌧️',
-  61:'🌧️', 63:'🌧️', 65:'🌧️',
-  71:'❄️', 73:'❄️', 75:'❄️',
-  80:'🌦️', 81:'🌧️', 82:'⛈️',
-  95:'⛈️', 96:'⛈️', 99:'⛈️',
-};
-const WX_DESC = {
-  0:'Clear sky', 1:'Mainly clear', 2:'Partly cloudy', 3:'Overcast',
-  45:'Foggy', 48:'Icy fog',
-  51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
-  61:'Light rain', 63:'Moderate rain', 65:'Heavy rain',
-  71:'Light snow', 73:'Moderate snow', 75:'Heavy snow',
-  80:'Showers', 81:'Heavy showers', 82:'Violent showers',
-  95:'Thunderstorm', 96:'Thunderstorm + hail', 99:'Severe thunderstorm',
-};
-
-async function initWeatherDashboard() {
-  const latEl = document.getElementById('lat');
-  const lonEl = document.getElementById('lon');
-  let lat = parseFloat(latEl?.value) || 20.296;
-  let lon = parseFloat(lonEl?.value) || 85.824;
-
-  // Try to use current geolocation
-  try {
-    if (navigator.geolocation) {
-      await new Promise((res) => {
-        navigator.geolocation.getCurrentPosition(pos => {
-          lat = pos.coords.latitude;
-          lon = pos.coords.longitude;
-          res();
-        }, res, { timeout: 4000 });
-      });
-    }
-  } catch(e) {}
-
-  // Update maps pin link
-  const mapsLink = document.getElementById('wd-maps-link');
-  if (mapsLink) mapsLink.href = `https://www.google.com/maps?q=${lat},${lon}`;
-
-  // Reverse geocode for location name
-  try {
-    const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
-    if (geo.ok) {
-      const gd = await geo.json();
-      const locText = document.getElementById('wd-loc-text');
-      const city = gd.address?.city || gd.address?.town || gd.address?.village || gd.address?.county || 'Your Location';
-      const state = gd.address?.state || '';
-      if (locText) locText.textContent = `${city}${state ? ', ' + state : ''}`;
-    }
-  } catch(e) {}
-
-  // Fetch 7-day forecast
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
-      + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,uv_index_max`
-      + `&hourly=relativehumidity_2m`
-      + `&timezone=auto&forecast_days=7`;
-    const res = await fetch(url);
-    const data = await res.json();
-    renderWeatherDashboard(data);
-  } catch(e) {
-    document.getElementById('wd-7day').innerHTML = '<div class="wd-loading">Could not load forecast. Check connection.</div>';
-  }
-}
-
-function renderWeatherDashboard(data) {
-  const daily = data.daily;
-  if (!daily) return;
-
-  const days = daily.time.length;
-  const strip = document.getElementById('wd-7day');
-  strip.innerHTML = '';
-
-  // Today card (big)
-  const todayCode = daily.weathercode[0];
-  const todayIcon = WX_ICONS[todayCode] || '🌤️';
-  const todayDesc = WX_DESC[todayCode] || 'Weather';
-  const todayMax  = Math.round(daily.temperature_2m_max[0]);
-  const todayMin  = Math.round(daily.temperature_2m_min[0]);
-  const todayRain = daily.precipitation_sum[0]?.toFixed(1) || '0.0';
-  const todayWind = Math.round(daily.windspeed_10m_max[0]) || '--';
-  const todayUV   = daily.uv_index_max?.[0]?.toFixed(1) || '--';
-  // Average humidity from hourly (first 24 vals)
-  const hourlyHum = data.hourly?.relativehumidity_2m?.slice(0,24) || [];
-  const avgHum = hourlyHum.length ? Math.round(hourlyHum.reduce((a,b)=>a+b,0)/hourlyHum.length) : '--';
-
-  document.getElementById('wd-today-icon').textContent = todayIcon;
-  document.getElementById('wd-today-temp').textContent = `${todayMax}°C`;
-  document.getElementById('wd-today-desc').textContent = `${todayDesc} · Low ${todayMin}°C`;
-  document.getElementById('wd-hum').textContent = avgHum + '%';
-  document.getElementById('wd-rain').textContent = todayRain + 'mm';
-  document.getElementById('wd-wind').textContent = todayWind + ' km/h';
-  document.getElementById('wd-uv').textContent = todayUV;
-
-  // 7-day strip
-  for (let i = 0; i < days; i++) {
-    const date = new Date(daily.time[i] + 'T12:00:00');
-    const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-IN', { weekday: 'short' });
-    const code = daily.weathercode[i];
-    const icon = WX_ICONS[code] || '🌤️';
-    const hi = Math.round(daily.temperature_2m_max[i]);
-    const lo = Math.round(daily.temperature_2m_min[i]);
-    const rain = daily.precipitation_sum[i]?.toFixed(1) || '0';
-
-    const card = document.createElement('div');
-    card.className = 'wd-day-card' + (i === 0 ? ' today-card' : '');
-    card.innerHTML = `
-      <div class="wd-day-name">${dayName}</div>
-      <div class="wd-day-icon">${icon}</div>
-      <div class="wd-day-hi">${hi}°</div>
-      <div class="wd-day-lo">${lo}°</div>
-      ${parseFloat(rain) > 0 ? `<div class="wd-day-rain">💧${rain}mm</div>` : ''}
-    `;
-    strip.appendChild(card);
-  }
-}
-
-// Weather dashboard init is hooked into activateMacroView above
-
 function handleChatKey(e) { if (e.key === 'Enter') sendChat(); }
 function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function showInvalidScanMsg(msg) {
-  let el = document.getElementById('scanInvalidMsg');
-  if (!el) return;
-  const span = el.querySelector('span:last-child') || el;
-  span.textContent = msg;
-  el.classList.add('show');
-}
-function hideInvalidScanMsg() {
-  const el = document.getElementById('scanInvalidMsg');
-  if (el) el.classList.remove('show');
-}
 
 /* ══════════════════════════════════════════════════════════
    🏥 PLANT HEALTH PASSPORT — Client-side PDF Generator
@@ -4550,7 +4444,10 @@ async function exportHealthPassport() {
 
   const btn = document.getElementById('exportPassportBtn');
   btn.classList.add('generating');
-  btn.querySelector('.passport-btn-title').textContent = 'Generating Prescription…';
+  // Safely update button label — find by class OR fall back to the title span
+  const btnTitle = btn.querySelector('.passport-btn-title') || btn.querySelector('span[style*="font-weight"]') || btn.querySelector('div span');
+  const originalBtnLabel = btnTitle ? btnTitle.textContent : '';
+  if (btnTitle) btnTitle.textContent = 'Generating PDF…';
 
   try {
     const { jsPDF } = window.jspdf;
@@ -4609,8 +4506,8 @@ async function exportHealthPassport() {
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     // Logo badge
     rrect(MARGIN, 7, 22, 22, 5, GREEN, null);
-    doc.setFontSize(14); doc.setTextColor(255,255,255);
-    doc.text('🌾', MARGIN + 11, 21, { align: 'center' });
+    doc.setFontSize(13); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
+    doc.text('[AU]', MARGIN + 11, 21, { align: 'center' });
 
     // Brand name
     doc.setFontSize(19); doc.setFont('helvetica', 'bold');
@@ -4744,7 +4641,7 @@ async function exportHealthPassport() {
     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
     rrect(MARGIN, curY, W - MARGIN*2, 6, 2, [20,60,30], null);
     doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(255,255,255);
-    doc.text('⛅  WEATHER-SAFE ADVISORY', MARGIN + 6, curY + 4.2);
+    doc.text('WEATHER-SAFE ADVISORY', MARGIN + 6, curY + 4.2);
     curY += 9;
 
     rrect(MARGIN, curY, W - MARGIN*2, 26, 4, [232, 244, 235], GREEN);
@@ -4816,7 +4713,7 @@ async function exportHealthPassport() {
     alert('Could not generate PDF: ' + err.message);
   } finally {
     btn.classList.remove('generating');
-    btn.querySelector('.passport-btn-title').textContent = 'Export Health Passport';
+    if (btnTitle) btnTitle.textContent = originalBtnLabel || 'Download PDF';
   }
 }
 
@@ -4896,7 +4793,7 @@ if (SR) {
               fd.append('lon', s.lon);
 
               // Silently send to Flask backend
-              await fetch('/analyze', { method: 'POST', body: fd });
+              await fetch(API_BASE + '/analyze', { method: 'POST', body: fd });
 
               // Remove from local queue
               const delTx = db.transaction("scans", "readwrite");
@@ -5004,10 +4901,7 @@ function activateMacroView() {
     setTimeout(() => {
       container.style.height = '';
       initOrRefreshRadarMap();
-      // Init weather dashboard if not already loaded
-      if (!document.getElementById('wd-7day').querySelector('.wd-day-card')) {
-        initWeatherDashboard();
-      }
+      if (!document.getElementById('wd-7day').querySelector('.wd-day-card')) initWeatherDashboard();
     }, 300);
   }, 220);
 
@@ -5753,7 +5647,7 @@ async function renderAIInsight(crop, weeks, weatherData, sowDate) {
 Crop: ${cropName}, Current week after sowing: ${sowWeek}, Avg max temperature: ${avgMaxTemp}°C, Avg humidity: ${avgHum}%, Rainfall (7 days): ${totalRain}mm, Likely diseases: ${diseases.join(', ') || 'none specific'}, Overall risk level: ${overall.level}.
 Include the estimated disease probability percentage. Be specific to the crop and conditions. ${selectedLang !== 'en' ? 'Reply in ' + selectedLangName + '.' : ''}`;
 
-    const res  = await fetch('/api/chat', {
+    const res  = await fetch(API_BASE + '/api/chat', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ message: prompt, lang: selectedLang, lang_name: selectedLangName })
