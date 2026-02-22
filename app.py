@@ -26,6 +26,9 @@ from services.ai_service import analyze_crop_image, get_demo_diagnosis, initiali
 from services.weather_service import fetch_weather_forecast
 from services.pdf_service import generate_farm_health_passport
 
+# ── Auth Blueprint ─────────────────────────────────────────────────────────────
+from auth import auth_bp
+
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -44,6 +47,9 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB max upload
 # ── Database ──────────────────────────────────────────────────────────────────
 from models import db, ScanRecord
 db.init_app(app)
+
+# ── Register Blueprints ────────────────────────────────────────────────────────
+app.register_blueprint(auth_bp)
 
 # Initialize Gemini
 _gemini_available = False
@@ -322,6 +328,8 @@ def test_gemini():
 # ── Database Init ─────────────────────────────────────────────────────────────
 def create_tables():
     with app.app_context():
+        # Import auth models so SQLAlchemy registers them before create_all
+        from auth import User, FarmerProfile  # noqa: F401
         db.create_all()
 
 if __name__ == "__main__":
