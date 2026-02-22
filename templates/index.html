@@ -2105,6 +2105,60 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
 .btn-passport.generating .passport-btn-title::after { content: ' …'; animation: dotPulse 1s infinite; }
 @keyframes dotPulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
+
+/* ════════════════════════════════════
+   GLOBAL RESPONSIVENESS FIXES
+════════════════════════════════════ */
+* { box-sizing: border-box; }
+img, video, canvas, svg { max-width: 100%; }
+body { overflow-x: hidden; }
+
+/* Result card on mobile */
+@media (max-width: 759px) {
+  #resultCard { margin: 0; border-radius: 20px; }
+  .result-morph-header { flex-wrap: wrap; gap: 8px; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .metric-box { padding: 12px 10px; }
+  .ra-action-bar { grid-template-columns: 1fr; }
+  .btn-passport { margin: 0; }
+  .ra-resource-grid { grid-template-columns: 1fr 1fr; }
+  #weatherDashboard { margin: 12px 10px 0; }
+  .wd-today { gap: 10px; }
+  .wd-today-temp { font-size: 30px; }
+  .wd-today-stats { gap: 8px; }
+}
+
+@media (max-width: 480px) {
+  .ra-section-body { padding: 12px 14px; }
+  .ra-value.large { font-size: 18px; }
+  .wd-today { padding: 14px; }
+  .wd-today-icon { font-size: 36px; }
+  .wd-7day { gap: 6px; }
+  .wd-day-card { width: 62px; padding: 10px 6px; }
+  #aiLogicBox { padding: 14px; }
+}
+
+@media (max-width: 360px) {
+  .ra-section-header { padding: 10px 12px; }
+  .ra-icon { width: 28px; height: 28px; font-size: 13px; }
+  .wd-day-card { width: 56px; }
+}
+
+/* macroPanel weather dashboard scroll */
+#macroPanel { overflow-y: auto; }
+#weatherDashboard { padding-bottom: 20px; }
+
+/* Scan card mobile */
+@media (max-width: 759px) {
+  #scanCard, #resultCard { width: 100% !important; }
+  .two-col { flex-direction: column !important; }
+}
+
+/* Cal body inner responsive */
+@media (max-width: 600px) {
+  .cal-body-inner { padding: 16px 12px 60px; }
+}
+
 </style> </head>
 <body>
 
@@ -2590,6 +2644,11 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
             <button class="error-dismiss" onclick="dismissError('scanError')">✕</button>
           </div>
 
+          <div id="scanInvalidMsg" class="scan-invalid-msg">
+            <span style="font-size:20px;flex-shrink:0;">🌿</span>
+            <span id="scanInvalidText">Please scan a valid plant or crop image.</span>
+          </div>
+
           <div class="progress-wrap" id="progressWrap">
             <div class="progress-label" id="progressLabel" data-i18n="uploading">Uploading image…</div>
             <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
@@ -2621,19 +2680,22 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
           </div>
 
           <div id="resultContent" style="display:none;">
-            <!-- Dynamic Morph Result Header -->
+
+            <!-- ── Header ── -->
             <div class="result-morph-header" id="resultMorphHeader">
               <div class="rmh-icon mode-disease" id="rmhIcon">🦠</div>
-              <div>
+              <div style="flex:1">
                 <div class="rmh-label mode-disease" id="rmhLabel">Disease Analysis</div>
-                <h2 data-i18n="diagTitle" style="font-family:var(--ff-display);font-size:24px;font-weight:600;color:var(--c-text);">Diagnosis Complete</h2>
-                <div>
+                <h2 data-i18n="diagTitle" style="font-family:var(--ff-display);font-size:22px;font-weight:600;color:var(--c-text);line-height:1.2;">Diagnosis Complete</h2>
+                <div style="margin-top:4px;">
                   <span class="auto-detect-pill" id="autoDetectPill">✦ Auto-detected</span>
                   <span class="badge-success" data-i18n="aiVerified" style="margin-left:6px;">AI Verified</span>
                 </div>
               </div>
-              <button onclick="location.reload()" class="btn-icon" title="New scan" style="margin-left:auto;">🔄</button>
+              <button onclick="location.reload()" class="btn-icon" title="New scan" style="margin-left:auto;flex-shrink:0;">🔄</button>
             </div>
+
+            <!-- Eco + ROI rings -->
             <div class="metrics-grid" id="metricsRow">
               <div class="metric-box">
                 <div class="ring-wrap">
@@ -2644,10 +2706,7 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
                   <div class="ring-val" id="scoreEco">--</div>
                 </div>
                 <span class="metric-label" data-i18n="ecoScore">Eco Score 🌍</span>
-                <div class="metric-tooltip">
-                  <strong>Eco Score</strong>
-                  How environmentally safe this treatment is (0–10). Higher = less chemical harm to soil, water &amp; beneficial insects.
-                </div>
+                <div class="metric-tooltip"><strong>Eco Score</strong>How environmentally safe this treatment is (0–10). Higher = less harm to soil &amp; insects.</div>
               </div>
               <div class="metric-box">
                 <div class="ring-wrap">
@@ -2658,58 +2717,126 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
                   <div class="ring-val roi-val" id="scoreRoi">--</div>
                 </div>
                 <span class="metric-label" data-i18n="roiEst">ROI Est. 💰</span>
-                <div class="metric-tooltip">
-                  <strong>ROI Estimate</strong>
-                  Expected return on treating this disease. "High" means early action now saves significant crop value &amp; yield loss later.
+                <div class="metric-tooltip"><strong>ROI Estimate</strong>"High" means early treatment saves significant crop value &amp; prevents yield loss.</div>
+              </div>
+            </div>
+
+            <!-- ━━━ 1. DETECTION ━━━ -->
+            <div class="ra-section" id="ra-detection">
+              <div class="ra-section-header">
+                <div class="ra-icon detect">🔬</div>
+                <div class="ra-section-title">1 · Detection</div>
+              </div>
+              <div class="ra-section-body">
+                <div class="ra-value large" id="ra-disease-name">—</div>
+                <div class="ra-sub" id="ra-confidence-text"></div>
+                <div class="ra-severity-bar" id="ra-sev-bar-wrap">
+                  <div class="ra-severity-fill" id="ra-sev-fill" style="width:0%"></div>
+                </div>
+                <div class="ra-sub" id="ra-severity-label" style="margin-top:5px;"></div>
+              </div>
+            </div>
+
+            <!-- ━━━ 2. EXPECTED CAUSE ━━━ -->
+            <div class="ra-section" id="ra-cause">
+              <div class="ra-section-header">
+                <div class="ra-icon cause">🧬</div>
+                <div class="ra-section-title">2 · Expected Cause</div>
+              </div>
+              <div class="ra-section-body">
+                <div class="ra-value" id="ra-cause-text">—</div>
+              </div>
+            </div>
+
+            <!-- ━━━ 3. REMEDIES ━━━ -->
+            <div class="ra-section" id="ra-remedy">
+              <div class="ra-section-header">
+                <div class="ra-icon remedy">💊</div>
+                <div class="ra-section-title">3 · Remedies — What to Do</div>
+              </div>
+              <div class="ra-section-body">
+                <ul class="ra-list" id="ra-remedy-list"></ul>
+              </div>
+            </div>
+
+            <!-- ━━━ 4. GOVT SCHEMES ━━━ -->
+            <div class="ra-section" id="ra-govt">
+              <div class="ra-section-header">
+                <div class="ra-icon govt">🏛️</div>
+                <div class="ra-section-title">4 · Related Government Schemes</div>
+              </div>
+              <div class="ra-section-body" id="ra-govt-body">
+                <p class="ra-no-scheme">No specific scheme linked to this diagnosis.</p>
+              </div>
+            </div>
+
+            <!-- ━━━ 5. PREVENTION ━━━ -->
+            <div class="ra-section" id="ra-prevent">
+              <div class="ra-section-header">
+                <div class="ra-icon prevent">🚫</div>
+                <div class="ra-section-title">5 · Prevention — What Not to Do</div>
+              </div>
+              <div class="ra-section-body">
+                <ul class="ra-list prevent" id="ra-prevent-list"></ul>
+              </div>
+            </div>
+
+            <!-- ━━━ 6. WHEN TO ACT ━━━ -->
+            <div class="ra-section" id="ra-timing">
+              <div class="ra-section-header">
+                <div class="ra-icon timing">⏰</div>
+                <div class="ra-section-title">6 · When to Act</div>
+              </div>
+              <div class="ra-section-body">
+                <div class="ra-weather-row" id="ra-wx-pills"></div>
+                <div id="ra-spray-badge" class="ra-spray-status green">✅ Conditions safe for spraying</div>
+                <div class="ra-sub" id="ra-wx-reason" style="margin-top:8px;"></div>
+              </div>
+            </div>
+
+            <!-- ━━━ 7. RESOURCES ━━━ -->
+            <div class="ra-section" id="ra-resources">
+              <div class="ra-section-header">
+                <div class="ra-icon resources">🛒</div>
+                <div class="ra-section-title">7 · Where to Get Resources</div>
+              </div>
+              <div class="ra-section-body">
+                <div class="ra-resource-grid">
+                  <button class="ra-resource-btn" onclick="openModal('shop')">
+                    <span class="rb-icon">💊</span>
+                    <span>Buy Medicine</span>
+                  </button>
+                  <button class="ra-resource-btn" onclick="openModal('sprayer')">
+                    <span class="rb-icon">🚜</span>
+                    <span>Rent Sprayer</span>
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div class="result-body" id="resBody">
-              <div class="diagnosis-cards" id="diagCards"></div>
-              <div class="empty-state" id="emptyState">
-                <div class="empty-icon">🔍</div>
-                <h4 data-i18n="emptyTitle">No Data Returned</h4>
-                <p data-i18n="emptyDesc">The analysis didn't return usable results. Try with a clearer image.</p>
-              </div>
+            <!-- ━━━ 8+9. DOWNLOAD + SHARE ━━━ -->
+            <div class="ra-action-bar">
+              <button id="exportPassportBtn" onclick="exportHealthPassport()" class="btn-passport" style="display:none;margin:0;" aria-label="Export Health Passport">
+                <span class="passport-btn-icon" style="font-size:20px;">🏥</span>
+                <div class="passport-btn-text">
+                  <span class="passport-btn-title" style="font-size:13px;">Download PDF</span>
+                  <span class="passport-btn-sub" style="font-size:10px;">Health Passport</span>
+                </div>
+              </button>
+              <button class="ra-share-btn" onclick="shareReport()">
+                <span style="font-size:18px;">💬</span>
+                <span data-i18n="shareWhatsapp">Share via WhatsApp</span>
+              </button>
             </div>
 
-            <div class="info-box warning" id="subsidyBox" style="display:none; align-items: center; justify-content: space-between; gap: 15px;">
-              <div style="display: flex; gap: 12px; align-items: flex-start;">
-                <span class="icon">🏛️</span>
-                <div><b data-i18n="govtScheme">Govt Scheme</b><span id="subsidyName"></span></div>
-              </div>
-              <a id="schemeLink" href="#" target="_blank" class="btn-sm" 
-                style="background: var(--c-gold); color: #080f0b; border: none; text-decoration: none; display: none; font-weight: 700; padding: 8px 14px; border-radius: 99px; font-size: 11px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(201, 168, 76, 0.3);">
-                KNOW MORE
-              </a>
-            </div>
-
-            <div class="info-box info" id="weatherBox">
-              <span class="icon">🌤️</span>
-              <div><b data-i18n="weatherAdv">Weather Advisory</b><span id="weatherText">Checking…</span></div>
-            </div>
-
-            <div class="action-grid" id="marketGrid">
-              <button class="btn-outline" onclick="openModal('sprayer')" data-i18n="rentTool">🚜 Rent Tool</button>
-              <button class="btn-outline" onclick="openModal('shop')" data-i18n="buyMeds">💊 Buy Meds</button>
-            </div>
-
-            <!-- Export Passport Button -->
-            <button id="exportPassportBtn" onclick="exportHealthPassport()" class="btn-passport" style="display:none;" aria-label="Export Plant Health Passport">
-              <span class="passport-btn-icon">🏥</span>
-              <div class="passport-btn-text">
-                <span class="passport-btn-title">Export Health Passport</span>
-                <span class="passport-btn-sub">Medical Prescription PDF for pesticide shop</span>
-              </div>
-              <span class="passport-btn-arrow">↓</span>
-            </button>
-            <!-- Legacy server PDF link (hidden) -->
+            <!-- hidden legacy elements kept for JS compatibility -->
             <a id="pdfLink" href="#" target="_blank" style="display:none;"></a>
-
-            <button class="btn-primary" onclick="shareReport()" style="margin-top: 12px; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);">
-              <span style="font-size: 18px; margin-right: 6px;">💬</span> <span data-i18n="shareWhatsapp">Share to WhatsApp</span>
-            </button>
+            <div id="diagCards" style="display:none;"></div>
+            <div id="emptyState" style="display:none;"></div>
+            <div id="resBody" style="display:none;"></div>
+            <div id="subsidyBox" style="display:none;"><span id="subsidyName"></span><a id="schemeLink" href="#" target="_blank"></a></div>
+            <div id="weatherBox" style="display:none;"><span id="weatherText"></span></div>
+            <div id="marketGrid" style="display:none;"></div>
           </div>
         </section>
 
@@ -2720,6 +2847,35 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
 
         <!-- Leaflet Map -->
         <div id="communityMap"></div>
+
+        <!-- ── 7-Day Live Weather Dashboard ── -->
+        <div id="weatherDashboard">
+          <div class="wd-header">
+            <div class="wd-title">🌦️ Live Weather Forecast</div>
+            <div class="wd-location">
+              <span id="wd-loc-text">Detecting location…</span>
+              <a id="wd-maps-link" href="#" target="_blank" title="Open in Maps">📍</a>
+            </div>
+          </div>
+          <!-- Today summary -->
+          <div class="wd-today" id="wd-today">
+            <div class="wd-today-icon" id="wd-today-icon">🌤️</div>
+            <div class="wd-today-info">
+              <div class="wd-today-temp" id="wd-today-temp">--°C</div>
+              <div class="wd-today-desc" id="wd-today-desc">Loading forecast…</div>
+              <div class="wd-today-stats">
+                <div class="wd-stat">💧 Humidity <span id="wd-hum">--%</span></div>
+                <div class="wd-stat">🌧 Rain <span id="wd-rain">--mm</span></div>
+                <div class="wd-stat">💨 Wind <span id="wd-wind">--km/h</span></div>
+                <div class="wd-stat">👁 UV <span id="wd-uv">--</span></div>
+              </div>
+            </div>
+          </div>
+          <!-- 7-day strip -->
+          <div class="wd-7day" id="wd-7day">
+            <div class="wd-loading">Loading 7-day forecast…</div>
+          </div>
+        </div>
 
         <!-- AI Logic Box -->
         <div id="aiLogicBox">
@@ -2875,9 +3031,8 @@ main { position:relative;z-index:10;max-width:1100px;margin:0 auto;padding:28px 
     </div>
   </div>
 </div>
-<script>
-const API_BASE = 'https://agriustaad.onrender.com'; // your Render URL
 
+<script>
 /* ════════════════════════════════════════════════════════
    TRANSLATION STRINGS — ALL UI TEXT IN ONE PLACE
 ════════════════════════════════════════════════════════ */
@@ -3340,7 +3495,7 @@ async function autoClassifyImage(file) {
         contents: [{
           parts: [
             { inline_data: { mime_type: mimeType, data: b64 } },
-            { text: `You are an agricultural AI. Classify this farm image into exactly ONE of these categories: "field" (crop disease/leaf problem), "yield" (harvest-ready crop/fruit/plant), "soil" (soil or ground), "crate" (produce crate/box/batch). Reply with ONLY the single category keyword, nothing else.` }
+            { text: `You are an agricultural AI validator. First check: is this image of a plant, crop, leaf, soil, or agricultural produce? If NOT (e.g. phone, table, chair, wall, person, random object), reply with exactly: "invalid". If YES, classify into ONE of: "field" (crop disease/leaf problem), "yield" (harvest-ready crop/fruit/plant), "soil" (soil or ground), "crate" (produce crate/box/batch). Reply with ONLY the single keyword, nothing else.` }
           ]
         }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 10 }
@@ -3350,6 +3505,20 @@ async function autoClassifyImage(file) {
     if (!response.ok) throw new Error('API error ' + response.status);
     const data = await response.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim().toLowerCase() || '';
+
+    // Show validation error if not a plant/crop image
+    if (text === 'invalid') {
+      showInvalidScanMsg('🌿 Please scan a valid plant or crop image. Non-agricultural objects cannot be analysed.');
+      _selectedFile = null;
+      document.getElementById('fileIn').value = '';
+      document.getElementById('preview').src = '';
+      document.getElementById('preview').style.display = 'none';
+      document.getElementById('uploadContent').style.display = '';
+      document.getElementById('btnAnalyze').disabled = true;
+      document.getElementById('btnAnalyze').classList.remove('ready');
+      return;
+    }
+    hideInvalidScanMsg();
     const detected = ['field','yield','soil','crate'].includes(text) ? text : 'field';
     aiClassifiedMode = detected;
     applyMode(detected);
@@ -3362,6 +3531,7 @@ async function autoClassifyImage(file) {
     if (filename.includes('soil') || filename.includes('dirt') || filename.includes('ground')) fallback = 'soil';
     else if (filename.includes('crate') || filename.includes('box') || filename.includes('harvest')) fallback = 'crate';
     else if (filename.includes('yield') || filename.includes('fruit')) fallback = 'yield';
+    hideInvalidScanMsg();
     aiClassifiedMode = fallback;
     applyMode(fallback);
   } finally {
@@ -3724,48 +3894,99 @@ function inlineMd(text) {
 }
 
 function buildDiagCards(mode, d) {
-  const container = document.getElementById('diagCards');
-  const empty     = document.getElementById('emptyState');
-  container.innerHTML = '';
+  // Legacy compat — now delegates to renderResultSections
+  renderResultSections(mode, d);
+}
 
-  let rows = [];
-  if (mode === 'yield') {
-    rows = [
-      { icon:'🍎', labelKey:'labelYield',     value: d.yield_estimate,    rich: false },
-      { icon:'📉', labelKey:'labelReadiness',  value: d.harvest_readiness, rich: false },
-      { icon:'💡', labelKey:'labelMarket',     value: d.market_advice,     rich: true  },
-    ];
-  } else if (mode === 'soil') {
-    rows = [
-      { icon:'🟤', labelKey:'labelSoilType',  value: d.soil_type,        rich: false },
-      { icon:'💧', labelKey:'labelMoisture',  value: d.moisture_level,   rich: false },
-      { icon:'🧪', labelKey:'labelTreatAdv',  value: d.treatment_advice, rich: true  },
-    ];
+function renderResultSections(mode, d) {
+  // ── 1. DETECTION ──
+  const diseaseName = mode === 'yield' ? (d.yield_estimate || 'Yield Analysis')
+                    : mode === 'soil'  ? (d.soil_type || 'Soil Analysis')
+                    : mode === 'crate' ? (d.disease_name || 'Quality Grade')
+                    : (d.disease_name || 'Unknown');
+  const el = (id) => document.getElementById(id);
+
+  el('ra-disease-name').textContent = diseaseName;
+
+  const conf = d.confidence;
+  el('ra-confidence-text').textContent = conf != null
+    ? `AI Confidence: ${conf}% · Mode: ${mode.charAt(0).toUpperCase()+mode.slice(1)}`
+    : `Analysis Mode: ${mode.charAt(0).toUpperCase()+mode.slice(1)}`;
+
+  const sev = parseFloat(d.severity_score) || 0;
+  const sevFill = el('ra-sev-fill');
+  const sevLabel = el('ra-severity-label');
+  const sevBarWrap = el('ra-sev-bar-wrap');
+  if (mode !== 'yield' && mode !== 'soil' && sev > 0) {
+    sevBarWrap.style.display = '';
+    sevFill.style.width = Math.min(sev, 100) + '%';
+    sevFill.className = 'ra-severity-fill' + (sev > 66 ? ' danger' : sev > 33 ? ' warn' : '');
+    sevLabel.textContent = `Severity: ${sev}% — ${sev > 66 ? 'High — Act immediately' : sev > 33 ? 'Moderate — Monitor closely' : 'Low — Early stage'}`;
   } else {
-    rows = [
-      { icon:'🦠', labelKey:'labelCondition', value: d.disease_name,     rich: false },
-      { icon:'⚠️', labelKey:'labelSeverity',  value: d.severity_score != null ? d.severity_score + '%' : null, severity: d.severity_score, rich: false },
-      { icon:'💊', labelKey:'labelTreatment', value: d.treatment_advice, rich: true  },
-    ];
+    sevBarWrap.style.display = 'none';
+    sevLabel.textContent = mode === 'yield' ? `Harvest Readiness: ${d.harvest_readiness || '—'}` : '';
   }
 
-  const hasData = rows.some(r => r.value != null && r.value !== '');
-  if (!hasData) { empty.classList.add('visible'); return; }
-  empty.classList.remove('visible');
+  // ── 2. EXPECTED CAUSE ──
+  const causeText = d.expected_cause
+    || (mode === 'soil'  ? `Soil type: ${d.soil_type || '—'}. Moisture: ${d.moisture_level || '—'}.`)
+    : (mode === 'yield'  ? `Market insight: ${d.market_advice || '—'}`)
+    : (d.disease_name    ? `Likely caused by fungal/bacterial/pest infection on ${d.disease_name}. Environmental stress (humidity, temperature) may accelerate spread.`
+                         : '—');
+  el('ra-cause-text').textContent = causeText;
 
-  rows.forEach(row => {
+  // ── 3. REMEDIES ──
+  const remedyList = el('ra-remedy-list');
+  remedyList.innerHTML = '';
+  const treatmentRaw = d.treatment_advice || d.market_advice || '';
+  // Split on sentence boundaries or bullet patterns
+  const remedies = treatmentRaw
+    .split(/(?<=[.!?])\s+(?=[A-Z])|
+|•|-\s+/)
+    .map(s => s.trim()).filter(s => s.length > 8).slice(0, 6);
+  if (remedies.length === 0) remedies.push(treatmentRaw || 'Consult your local agricultural extension officer.');
+  remedies.forEach(r => {
+    const li = document.createElement('li');
+    li.textContent = r.replace(/^[-•]\s*/, '');
+    remedyList.appendChild(li);
+  });
+
+  // ── 4. GOVT SCHEMES ──
+  const govtBody = el('ra-govt-body');
+  govtBody.innerHTML = '';
+  if (d.govt_subsidy) {
     const card = document.createElement('div');
-    card.className = 'diag-card' + (row.rich ? ' diag-card-rich' : '');
-    const label = T[row.labelKey] || row.labelKey;
-    let extra = '';
-    if (row.severity != null) extra = `<div class="severity-bar-wrap"><div class="severity-bar-track"><div class="severity-bar-fill" style="width:${Math.min(row.severity,100)}%"></div></div></div>`;
+    card.className = 'ra-scheme-card';
+    const schemeUrl = d.govt_scheme_url || 'https://pmfby.gov.in';
+    card.innerHTML = `
+      <div>
+        <div class="ra-scheme-name">🏛️ ${escapeHtml(d.govt_subsidy)}</div>
+        <div class="ra-sub" style="margin-top:3px;">Government scheme related to this diagnosis</div>
+      </div>
+      <a href="${schemeUrl}" target="_blank" class="ra-scheme-link">Know More ↗</a>`;
+    govtBody.appendChild(card);
+    // Also update legacy hidden element
+    document.getElementById('subsidyName').innerText = d.govt_subsidy;
+  } else {
+    govtBody.innerHTML = '<p class="ra-no-scheme">No specific scheme linked to this diagnosis. Visit <a href="https://pmfby.gov.in" target="_blank" style="color:var(--c-gold);">pmfby.gov.in</a> for general crop insurance.</p>';
+  }
 
-    const valueHTML = row.rich
-      ? `<div class="diag-value diag-value-rich">${parseToHTML(row.value)}</div>`
-      : `<div class="diag-value">${row.value != null ? escapeHtml(String(row.value)) : '—'}</div>`;
-
-    card.innerHTML = `<div class="diag-icon">${row.icon}</div><div class="diag-info"><div class="diag-label">${escapeHtml(label)}</div>${valueHTML}${extra}</div>`;
-    container.appendChild(card);
+  // ── 5. PREVENTION ──
+  const preventList = el('ra-prevent-list');
+  preventList.innerHTML = '';
+  const preventItems = d.prevention_tips
+    ? (Array.isArray(d.prevention_tips) ? d.prevention_tips : d.prevention_tips.split(/[.\n]/).filter(s=>s.trim().length>5))
+    : [
+        'Avoid overhead irrigation which spreads spores.',
+        'Do not apply treatments during rain or high winds.',
+        'Do not ignore early symptoms — delayed action worsens spread.',
+        'Avoid overcrowding plants; maintain proper spacing.',
+        'Do not reuse infected crop debris as compost.',
+      ];
+  preventItems.slice(0, 5).forEach(p => {
+    const li = document.createElement('li');
+    li.textContent = p.trim().replace(/^[-•]\s*/, '');
+    preventList.appendChild(li);
   });
 }
 
@@ -3897,6 +4118,40 @@ async function runAnalysis() {
     document.getElementById('weatherText').innerText = w.status_reason || "Unavailable";
     buildDiagCards(currMode, d);
     morphDashboard(currMode);
+
+    // ── Populate "When to Act" section ──
+    const wxPills = document.getElementById('ra-wx-pills');
+    if (wxPills) {
+      wxPills.innerHTML = '';
+      const wxStats = [
+        { label: 'Temp', val: w.temp_max ? w.temp_max + '°C' : '--', icon: '🌡' },
+        { label: 'Humidity', val: w.humidity ? w.humidity + '%' : '--', icon: '💧' },
+        { label: 'Rain', val: w.rainfall != null ? w.rainfall + 'mm' : '--', icon: '🌧' },
+        { label: 'Wind', val: w.wind_speed ? w.wind_speed + 'km/h' : '--', icon: '💨' },
+      ];
+      wxStats.forEach(s => {
+        const pill = document.createElement('div');
+        pill.className = 'ra-weather-pill';
+        pill.innerHTML = `<span>${s.icon}</span><span class="pill-val">${s.val}</span><span>${s.label}</span>`;
+        wxPills.appendChild(pill);
+      });
+    }
+    const sprayBadge = document.getElementById('ra-spray-badge');
+    const wxReason = document.getElementById('ra-wx-reason');
+    if (sprayBadge) {
+      const status = (w.spray_status || 'unknown').toLowerCase();
+      if (status === 'green') {
+        sprayBadge.className = 'ra-spray-status green';
+        sprayBadge.textContent = '✅ Conditions safe for spraying';
+      } else if (status === 'yellow') {
+        sprayBadge.className = 'ra-spray-status yellow';
+        sprayBadge.textContent = '⚠️ Caution — check before spraying';
+      } else {
+        sprayBadge.className = 'ra-spray-status red';
+        sprayBadge.textContent = '🚫 Do not spray now';
+      }
+    }
+    if (wxReason) wxReason.textContent = w.status_reason || '';
 
     if (d.disease_name) {
       lastDiagnosisState = { disease: d.disease_name, mode: currMode, severity: d.severity_score };
@@ -4143,8 +4398,146 @@ async function sendChat() {
   body.scrollTop = body.scrollHeight;
 }
 
+
+/* ══════════════════════════════════════════════════════
+   🌦️ 7-DAY LIVE WEATHER DASHBOARD (Maps Tab)
+══════════════════════════════════════════════════════ */
+const WX_ICONS = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️',
+  45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌧️',
+  61:'🌧️', 63:'🌧️', 65:'🌧️',
+  71:'❄️', 73:'❄️', 75:'❄️',
+  80:'🌦️', 81:'🌧️', 82:'⛈️',
+  95:'⛈️', 96:'⛈️', 99:'⛈️',
+};
+const WX_DESC = {
+  0:'Clear sky', 1:'Mainly clear', 2:'Partly cloudy', 3:'Overcast',
+  45:'Foggy', 48:'Icy fog',
+  51:'Light drizzle', 53:'Drizzle', 55:'Heavy drizzle',
+  61:'Light rain', 63:'Moderate rain', 65:'Heavy rain',
+  71:'Light snow', 73:'Moderate snow', 75:'Heavy snow',
+  80:'Showers', 81:'Heavy showers', 82:'Violent showers',
+  95:'Thunderstorm', 96:'Thunderstorm + hail', 99:'Severe thunderstorm',
+};
+
+async function initWeatherDashboard() {
+  const latEl = document.getElementById('lat');
+  const lonEl = document.getElementById('lon');
+  let lat = parseFloat(latEl?.value) || 20.296;
+  let lon = parseFloat(lonEl?.value) || 85.824;
+
+  // Try to use current geolocation
+  try {
+    if (navigator.geolocation) {
+      await new Promise((res) => {
+        navigator.geolocation.getCurrentPosition(pos => {
+          lat = pos.coords.latitude;
+          lon = pos.coords.longitude;
+          res();
+        }, res, { timeout: 4000 });
+      });
+    }
+  } catch(e) {}
+
+  // Update maps pin link
+  const mapsLink = document.getElementById('wd-maps-link');
+  if (mapsLink) mapsLink.href = `https://www.google.com/maps?q=${lat},${lon}`;
+
+  // Reverse geocode for location name
+  try {
+    const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+    if (geo.ok) {
+      const gd = await geo.json();
+      const locText = document.getElementById('wd-loc-text');
+      const city = gd.address?.city || gd.address?.town || gd.address?.village || gd.address?.county || 'Your Location';
+      const state = gd.address?.state || '';
+      if (locText) locText.textContent = `${city}${state ? ', ' + state : ''}`;
+    }
+  } catch(e) {}
+
+  // Fetch 7-day forecast
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}`
+      + `&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,uv_index_max`
+      + `&hourly=relativehumidity_2m`
+      + `&timezone=auto&forecast_days=7`;
+    const res = await fetch(url);
+    const data = await res.json();
+    renderWeatherDashboard(data);
+  } catch(e) {
+    document.getElementById('wd-7day').innerHTML = '<div class="wd-loading">Could not load forecast. Check connection.</div>';
+  }
+}
+
+function renderWeatherDashboard(data) {
+  const daily = data.daily;
+  if (!daily) return;
+
+  const days = daily.time.length;
+  const strip = document.getElementById('wd-7day');
+  strip.innerHTML = '';
+
+  // Today card (big)
+  const todayCode = daily.weathercode[0];
+  const todayIcon = WX_ICONS[todayCode] || '🌤️';
+  const todayDesc = WX_DESC[todayCode] || 'Weather';
+  const todayMax  = Math.round(daily.temperature_2m_max[0]);
+  const todayMin  = Math.round(daily.temperature_2m_min[0]);
+  const todayRain = daily.precipitation_sum[0]?.toFixed(1) || '0.0';
+  const todayWind = Math.round(daily.windspeed_10m_max[0]) || '--';
+  const todayUV   = daily.uv_index_max?.[0]?.toFixed(1) || '--';
+  // Average humidity from hourly (first 24 vals)
+  const hourlyHum = data.hourly?.relativehumidity_2m?.slice(0,24) || [];
+  const avgHum = hourlyHum.length ? Math.round(hourlyHum.reduce((a,b)=>a+b,0)/hourlyHum.length) : '--';
+
+  document.getElementById('wd-today-icon').textContent = todayIcon;
+  document.getElementById('wd-today-temp').textContent = `${todayMax}°C`;
+  document.getElementById('wd-today-desc').textContent = `${todayDesc} · Low ${todayMin}°C`;
+  document.getElementById('wd-hum').textContent = avgHum + '%';
+  document.getElementById('wd-rain').textContent = todayRain + 'mm';
+  document.getElementById('wd-wind').textContent = todayWind + ' km/h';
+  document.getElementById('wd-uv').textContent = todayUV;
+
+  // 7-day strip
+  for (let i = 0; i < days; i++) {
+    const date = new Date(daily.time[i] + 'T12:00:00');
+    const dayName = i === 0 ? 'Today' : date.toLocaleDateString('en-IN', { weekday: 'short' });
+    const code = daily.weathercode[i];
+    const icon = WX_ICONS[code] || '🌤️';
+    const hi = Math.round(daily.temperature_2m_max[i]);
+    const lo = Math.round(daily.temperature_2m_min[i]);
+    const rain = daily.precipitation_sum[i]?.toFixed(1) || '0';
+
+    const card = document.createElement('div');
+    card.className = 'wd-day-card' + (i === 0 ? ' today-card' : '');
+    card.innerHTML = `
+      <div class="wd-day-name">${dayName}</div>
+      <div class="wd-day-icon">${icon}</div>
+      <div class="wd-day-hi">${hi}°</div>
+      <div class="wd-day-lo">${lo}°</div>
+      ${parseFloat(rain) > 0 ? `<div class="wd-day-rain">💧${rain}mm</div>` : ''}
+    `;
+    strip.appendChild(card);
+  }
+}
+
+// Weather dashboard init is hooked into activateMacroView above
+
 function handleChatKey(e) { if (e.key === 'Enter') sendChat(); }
 function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showInvalidScanMsg(msg) {
+  let el = document.getElementById('scanInvalidMsg');
+  if (!el) return;
+  const span = el.querySelector('span:last-child') || el;
+  span.textContent = msg;
+  el.classList.add('show');
+}
+function hideInvalidScanMsg() {
+  const el = document.getElementById('scanInvalidMsg');
+  if (el) el.classList.remove('show');
+}
 
 /* ══════════════════════════════════════════════════════════
    🏥 PLANT HEALTH PASSPORT — Client-side PDF Generator
@@ -4611,6 +5004,10 @@ function activateMacroView() {
     setTimeout(() => {
       container.style.height = '';
       initOrRefreshRadarMap();
+      // Init weather dashboard if not already loaded
+      if (!document.getElementById('wd-7day').querySelector('.wd-day-card')) {
+        initWeatherDashboard();
+      }
     }, 300);
   }, 220);
 
@@ -5585,5 +5982,4 @@ document.addEventListener('keydown', e => {
   }
 </script>
 </body>
-
 </html>
